@@ -4,8 +4,7 @@
 name: Java CI with Maven
 
 on:
-  release:
-    types: [ published ]
+  push:
     branches: [ master ]
 
 jobs:
@@ -24,7 +23,10 @@ jobs:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
+    - name: Set Release version env variable
+      run: |
+        echo "RELEASE_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
     - name: Build and publish to GitHub Packages
-      run: mvn deploy -s ${{ github.workspace }}/settings.xml
+      run: mvn deploy -s ${{ github.workspace }}/settings.xml -Dversion='${{env.RELEASE_VERSION}}-${{env.GITHUB_SHA}}'
       env:
         GITHUB_TOKEN: ${{ github.token }}
