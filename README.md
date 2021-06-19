@@ -34,8 +34,6 @@
   <h3 align="center">Avinity</h3>
 
   <p align="center">
-    <!-- TODO: project_description -->
-  
     <br />
     <a href="https://github.com/SyntaxPhoenix/Avinity/issues/new?labels=Bug&template=bug_report.md&title=%5BBUG%5D+Some+bug+that+happend">Report Bug</a>
     ·
