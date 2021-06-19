@@ -26,8 +26,12 @@ jobs:
     - name: Set Release version env variable
       run: |
         echo "RELEASE_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+    - name: Update Maven Project version
+      run: |
+        mvn versions:set -DnewVersion='${{env.RELEASE_VERSION}}-${{env.GITHUB_SHA}}'
+        mvn versions:update-child-modules
     - name: Build and publish to GitHub Packages
-      run: mvn deploy -s ${{ github.workspace }}/.m2/settings.xml -Dversion='${{env.RELEASE_VERSION}}-${{env.GITHUB_SHA}}'
+      run: mvn deploy -s ${{ github.workspace }}/.m2/settings.xml
       env:
         GITHUB_TOKEN: ${{ github.token }}
         GITHUB_USER: ${{ github.repository_owner }}
