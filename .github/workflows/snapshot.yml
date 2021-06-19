@@ -30,3 +30,4 @@ jobs:
       run: mvn deploy -s ${{ github.workspace }}/.m2/settings.xml -Dversion='${{env.RELEASE_VERSION}}-${{env.GITHUB_SHA}}'
       env:
         GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_USER: ${{ github.repository_owner }}
