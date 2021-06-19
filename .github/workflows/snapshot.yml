@@ -27,6 +27,6 @@ jobs:
       run: |
         echo "RELEASE_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
     - name: Build and publish to GitHub Packages
-      run: mvn deploy -s ${{ github.workspace }}/settings.xml -Dversion='${{env.RELEASE_VERSION}}-${{env.GITHUB_SHA}}'
+      run: mvn deploy -s ${{ github.workspace }}/.m2/settings.xml -Dversion='${{env.RELEASE_VERSION}}-${{env.GITHUB_SHA}}'
       env:
         GITHUB_TOKEN: ${{ github.token }}
