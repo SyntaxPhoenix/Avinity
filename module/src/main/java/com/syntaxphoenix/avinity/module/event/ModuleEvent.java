@@ -7,7 +7,7 @@ public abstract class ModuleEvent extends Event {
 
     private final ModuleWrapper<?> wrapper;
 
-    public ModuleEvent(ModuleWrapper<?> wrapper) {
+    public ModuleEvent(final ModuleWrapper<?> wrapper) {
         this.wrapper = wrapper;
     }
 

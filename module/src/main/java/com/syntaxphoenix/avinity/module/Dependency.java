@@ -12,8 +12,8 @@ public class Dependency {
 
     private final boolean optional;
 
-    public Dependency(String dependency) {
-        int index = dependency.indexOf('#');
+    public Dependency(final String dependency) {
+        final int index = dependency.indexOf('#');
         String tempId;
         if (index == -1) {
             tempId = dependency;
@@ -21,7 +21,7 @@ public class Dependency {
         } else {
             tempId = dependency.substring(0, index);
             if (dependency.length() > index + 1) {
-                DependencyVersion[] support = analyzeSupport(dependency.substring(index + 1));
+                final DependencyVersion[] support = analyzeSupport(dependency.substring(index + 1));
                 minimum = support[0];
                 maximum = support[1];
             } else {
@@ -31,8 +31,8 @@ public class Dependency {
         id = (optional = tempId.endsWith("?")) ? tempId.substring(0, tempId.length() - 1) : tempId;
     }
 
-    private DependencyVersion[] analyzeSupport(String support) {
-        DependencyVersion[] versions = new DependencyVersion[2];
+    private DependencyVersion[] analyzeSupport(final String support) {
+        final DependencyVersion[] versions = new DependencyVersion[2];
         int index = support.indexOf('+');
         if (index != -1) {
             versions[0] = DependencyVersionParser.INSTANCE.analyze(support.substring(0, index));
@@ -47,19 +47,19 @@ public class Dependency {
         versions[0] = versions[1] = DependencyVersionParser.INSTANCE.analyze(support);
         return versions;
     }
-    
+
     public String getId() {
         return id;
     }
-    
+
     public boolean isOptional() {
         return optional;
     }
-    
+
     public DependencyVersion getMaximum() {
         return maximum;
     }
-    
+
     public DependencyVersion getMinimum() {
         return minimum;
     }
@@ -73,7 +73,7 @@ public class Dependency {
     }
 
     public boolean hasStrictVersion() {
-        return (hasMinimum() && hasMaximum()) && minimum == maximum;
+        return hasMinimum() && hasMaximum() && minimum == maximum;
     }
 
 }

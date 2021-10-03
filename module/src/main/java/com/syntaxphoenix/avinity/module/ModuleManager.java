@@ -16,7 +16,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import com.syntaxphoenix.avinity.module.event.*;
+import com.syntaxphoenix.avinity.module.event.ModuleDisableEvent;
+import com.syntaxphoenix.avinity.module.event.ModuleEnableEvent;
+import com.syntaxphoenix.avinity.module.event.ModuleResolveEvent;
+import com.syntaxphoenix.avinity.module.event.ModuleUnloadEvent;
 import com.syntaxphoenix.avinity.module.util.DescriptionParser;
 import com.syntaxphoenix.avinity.module.util.InstanceCreator;
 import com.syntaxphoenix.avinity.module.util.graph.DependencyGraph;
@@ -40,15 +43,15 @@ public class ModuleManager<M extends Module> {
     private final HashSet<Object> injections = new HashSet<>();
     private final Class<M> moduleClass;
 
-    public ModuleManager(Class<M> moduleClass, Version version) {
+    public ModuleManager(final Class<M> moduleClass, final Version version) {
         this(moduleClass, null, version);
     }
 
-    public ModuleManager(Class<M> moduleClass, EventManager eventManager, Version version) {
+    public ModuleManager(final Class<M> moduleClass, final EventManager eventManager, final Version version) {
         this.moduleClass = Objects.requireNonNull(moduleClass, "Module class can't be null!");
         this.version = Objects.requireNonNull(version, "System version can't be null!");
         this.eventManager = eventManager;
-        this.logger = (eventManager != null && eventManager.hasLogger()) ? eventManager.getLogger() : null;
+        this.logger = eventManager != null && eventManager.hasLogger() ? eventManager.getLogger() : null;
     }
 
     /*
@@ -62,7 +65,7 @@ public class ModuleManager<M extends Module> {
     public final EventManager getEventManager() {
         return eventManager;
     }
-    
+
     public final Class<M> getModuleType() {
         return moduleClass;
     }
@@ -75,14 +78,14 @@ public class ModuleManager<M extends Module> {
         return Collections.unmodifiableSet(injections);
     }
 
-    public void addInjection(Object object) {
+    public void addInjection(final Object object) {
         if (object == null) {
             return;
         }
         injections.add(object);
     }
 
-    public void removeInjection(Object object) {
+    public void removeInjection(final Object object) {
         if (object == null) {
             return;
         }
@@ -97,9 +100,9 @@ public class ModuleManager<M extends Module> {
         return new ArrayList<>(modules.values());
     }
 
-    public ArrayList<ModuleWrapper<M>> getModules(ModuleState state) {
-        ArrayList<ModuleWrapper<M>> modules = new ArrayList<>();
-        for (ModuleWrapper<M> module : getModules()) {
+    public ArrayList<ModuleWrapper<M>> getModules(final ModuleState state) {
+        final ArrayList<ModuleWrapper<M>> modules = new ArrayList<>();
+        for (final ModuleWrapper<M> module : getModules()) {
             if (module.getState() == state) {
                 modules.add(module);
             }
@@ -107,10 +110,10 @@ public class ModuleManager<M extends Module> {
         return modules;
     }
 
-    public ArrayList<ModuleWrapper<M>> getModules(ModuleState... states) {
-        ArrayList<ModuleWrapper<M>> modules = new ArrayList<>();
-        for (ModuleWrapper<M> module : getModules()) {
-            for (ModuleState state : states) {
+    public ArrayList<ModuleWrapper<M>> getModules(final ModuleState... states) {
+        final ArrayList<ModuleWrapper<M>> modules = new ArrayList<>();
+        for (final ModuleWrapper<M> module : getModules()) {
+            for (final ModuleState state : states) {
                 if (module.getState() == state) {
                     modules.add(module);
                     break;
@@ -120,13 +123,13 @@ public class ModuleManager<M extends Module> {
         return modules;
     }
 
-    public Optional<ModuleWrapper<M>> getModule(String id) {
+    public Optional<ModuleWrapper<M>> getModule(final String id) {
         return Optional.ofNullable(modules.get(id));
     }
 
-    public Optional<ModuleWrapper<M>> getModuleForClass(Class<?> clazz) {
-        ClassLoader loader = clazz.getClassLoader();
-        for (ModuleWrapper<M> module : modules.values()) {
+    public Optional<ModuleWrapper<M>> getModuleForClass(final Class<?> clazz) {
+        final ClassLoader loader = clazz.getClassLoader();
+        for (final ModuleWrapper<M> module : modules.values()) {
             if (module.getLoader() == loader) {
                 return Optional.of(module);
             }
@@ -134,15 +137,15 @@ public class ModuleManager<M extends Module> {
         return Optional.empty();
     }
 
-    public Optional<ModuleClassLoader> getClassLoader(String id) {
+    public Optional<ModuleClassLoader> getClassLoader(final String id) {
         return Optional.ofNullable(classLoaders.get(id));
     }
 
-    public boolean hasModule(String id) {
+    public boolean hasModule(final String id) {
         return modules.containsKey(id);
     }
 
-    public boolean hasModuleState(String id, ModuleState state) {
+    public boolean hasModuleState(final String id, final ModuleState state) {
         return hasModule(id) && getModule(id).get().getState() == state;
     }
 
@@ -150,8 +153,8 @@ public class ModuleManager<M extends Module> {
         return new ArrayList<>(moduleRepos);
     }
 
-    protected String idFromFile(File file) {
-        for (ModuleWrapper<M> module : getModules()) {
+    protected String idFromFile(final File file) {
+        for (final ModuleWrapper<M> module : getModules()) {
             if (module.getFile().equals(file)) {
                 return module.getDescription().getId();
             }
@@ -163,15 +166,15 @@ public class ModuleManager<M extends Module> {
      * Module Loading
      */
 
-    public Status loadModules(File folder) {
+    public Status loadModules(final File folder) {
         if (!folder.exists() || !folder.isDirectory()) {
-            Status status = new Status(0);
+            final Status status = new Status(0);
             status.done();
             return status;
         }
-        File[] files = folder.listFiles();
-        Status status = new Status(files.length);
-        for (File file : files) {
+        final File[] files = folder.listFiles();
+        final Status status = new Status(files.length);
+        for (final File file : files) {
             if (file.isDirectory()) {
                 continue;
             }
@@ -185,7 +188,7 @@ public class ModuleManager<M extends Module> {
                     continue;
                 }
                 status.success();
-            } catch (ModuleException exp) {
+            } catch (final ModuleException exp) {
                 if (logger != null) {
                     logger.log(exp);
                 }
@@ -196,8 +199,8 @@ public class ModuleManager<M extends Module> {
         return status;
     }
 
-    protected ModuleWrapper<M> loadModule(File file) throws ModuleException {
-        String id = idFromFile(file);
+    protected ModuleWrapper<M> loadModule(final File file) throws ModuleException {
+        final String id = idFromFile(file);
         if (id != null) {
             throw new ModuleAlreadyLoadedException("Module \"" + id + "\" of file \"" + file.getPath() + "\" is already loaded!");
         }
@@ -206,15 +209,15 @@ public class ModuleManager<M extends Module> {
         }
         ModuleDescription description = null;
         try (JarFile jar = new JarFile(file)) {
-            Enumeration<JarEntry> entries = jar.entries();
+            final Enumeration<JarEntry> entries = jar.entries();
             while (entries.hasMoreElements()) {
-                JarEntry entry = entries.nextElement();
-                if (!entry.getName().equalsIgnoreCase("module.json")) {
+                final JarEntry entry = entries.nextElement();
+                if (!"module.json".equalsIgnoreCase(entry.getName())) {
                     continue;
                 }
                 description = new DescriptionParser(file, new BufferedReader(new InputStreamReader(jar.getInputStream(entry)))).parse();
             }
-        } catch (IOException exp) {
+        } catch (final IOException exp) {
             throw new ModuleException(exp);
         }
         if (description == null) {
@@ -223,10 +226,10 @@ public class ModuleManager<M extends Module> {
         if (modules.containsKey(description.getId())) {
             throw new ModuleAlreadyLoadedException("There is already a module with the id '" + description.getId() + "'");
         }
-        ModuleClassLoader loader = new ModuleClassLoader(this, description, getClass().getClassLoader(), LoadingStrategy.ADM);
+        final ModuleClassLoader loader = new ModuleClassLoader(this, description, getClass().getClassLoader(), LoadingStrategy.ADM);
         loader.addFile(file);
 
-        ModuleWrapper<M> wrapper = new ModuleWrapper<>(this, description, file, loader);
+        final ModuleWrapper<M> wrapper = new ModuleWrapper<>(this, description, file, loader);
 
         if (!isModuleValid(wrapper)) {
             wrapper.setState(ModuleState.UNLOADED);
@@ -235,27 +238,24 @@ public class ModuleManager<M extends Module> {
         return wrapper;
     }
 
-    protected boolean isModuleValid(ModuleWrapper<M> wrapper) {
-        Dependency dependency = wrapper.getDescription().getSystem();
+    protected boolean isModuleValid(final ModuleWrapper<M> wrapper) {
+        final Dependency dependency = wrapper.getDescription().getSystem();
         if (dependency.hasStrictVersion()) {
             return version.isSimilar(dependency.getMinimum());
         }
-        if (dependency.hasMinimum() && version.isLower(dependency.getMinimum())) {
-            return false;
-        }
-        if (dependency.hasMaximum() && version.isHigher(dependency.getMaximum())) {
+        if ((dependency.hasMinimum() && version.isLower(dependency.getMinimum())) || (dependency.hasMaximum() && version.isHigher(dependency.getMaximum()))) {
             return false;
         }
         return true;
     }
 
     protected void resolveModules() {
-        ArrayList<ModuleDescription> descriptions = new ArrayList<>();
-        for (ModuleWrapper<M> wrapper : getModules()) {
+        final ArrayList<ModuleDescription> descriptions = new ArrayList<>();
+        for (final ModuleWrapper<M> wrapper : getModules()) {
             descriptions.add(wrapper.getDescription());
         }
 
-        DependencyGraph graph = new DependencyGraph(descriptions);
+        final DependencyGraph graph = new DependencyGraph(descriptions);
         descriptions.clear();
         if (graph.hasDuplicates()) {
             throw new ModuleException("There are some module duplicates: [" + String.join(", ", graph.getDuplicates()) + "]");
@@ -268,9 +268,9 @@ public class ModuleManager<M extends Module> {
             throw new ModuleException("There are some dependencies missing: [" + String.join(", ", graph.getNotFound()) + "]");
         }
 
-        ArrayList<String> sorted = graph.getSorted();
-        for (String id : sorted) {
-            ModuleWrapper<M> wrapper = modules.get(id);
+        final ArrayList<String> sorted = graph.getSorted();
+        for (final String id : sorted) {
+            final ModuleWrapper<M> wrapper = modules.get(id);
             if (wrapper.getState().isResolved()) {
                 continue;
             }
@@ -280,7 +280,7 @@ public class ModuleManager<M extends Module> {
             if (eventManager != null) {
                 try {
                     eventManager.call(new ModuleResolveEvent(wrapper));
-                } catch (Exception exp) {
+                } catch (final Exception exp) {
                     if (logger != null) {
                         logger.log("Failed to call ModuleResolveEvent for module '" + id + "'!", exp);
                     }
@@ -290,18 +290,18 @@ public class ModuleManager<M extends Module> {
     }
 
     protected M createModule(final ModuleWrapper<M> wrapper) throws ModuleException {
-        ModuleDescription description = wrapper.getDescription();
-        String classPath = description.getClassPath();
+        final ModuleDescription description = wrapper.getDescription();
+        final String classPath = description.getClassPath();
 
         Class<?> clazz;
         try {
             clazz = wrapper.getLoader().loadClass(classPath);
-        } catch (ClassNotFoundException exp) {
+        } catch (final ClassNotFoundException exp) {
             throw new ModuleException(
                 "Error while trying to load module '" + description.getId() + "': The main class '" + classPath + "' doesn't exist!", exp);
         }
 
-        int modifiers = clazz.getModifiers();
+        final int modifiers = clazz.getModifiers();
         if (Modifier.isAbstract(modifiers) || Modifier.isInterface(modifiers) || !moduleClass.isAssignableFrom(clazz)) {
             throw new ModuleException(
                 "Error while trying to load module '" + description.getId() + "': The main class '" + classPath + "' is not a Module!");
@@ -310,17 +310,17 @@ public class ModuleManager<M extends Module> {
         try {
             return InstanceCreator.create(clazz.asSubclass(moduleClass),
                 Arrays.merge(Object[]::new, injections.toArray(), wrapper, eventManager));
-        } catch (Exception exp) {
+        } catch (final Exception exp) {
             throw new ModuleException("Error while trying to load module '" + description.getId() + "': Failed to create module instance!",
                 exp);
         }
     }
 
     public Status enableModules() {
-        ArrayList<ModuleWrapper<M>> wrappers = getModules(ModuleState.RESOLVED, ModuleState.DISABLED);
-        Status status = new Status(wrappers.size());
-        for (ModuleWrapper<M> wrapper : wrappers) {
-            ModuleState state = disableModule(wrapper.getDescription().getId());
+        final ArrayList<ModuleWrapper<M>> wrappers = getModules(ModuleState.RESOLVED, ModuleState.DISABLED);
+        final Status status = new Status(wrappers.size());
+        for (final ModuleWrapper<M> wrapper : wrappers) {
+            final ModuleState state = disableModule(wrapper.getDescription().getId());
             if (state != ModuleState.DISABLED) {
                 status.failed();
                 continue;
@@ -331,15 +331,15 @@ public class ModuleManager<M extends Module> {
         return status;
     }
 
-    public ModuleState enableModule(String id) {
+    public ModuleState enableModule(final String id) {
 
-        ModuleWrapper<M> wrapper = modules.get(id);
+        final ModuleWrapper<M> wrapper = modules.get(id);
         if (wrapper == null) {
             throw new ModuleException("Module '" + id + "' doesn't exist!");
         }
 
-        ModuleDescription description = wrapper.getDescription();
-        ModuleState state = wrapper.getState();
+        final ModuleDescription description = wrapper.getDescription();
+        final ModuleState state = wrapper.getState();
         if (!state.isResolved()) {
             if (logger != null) {
                 logger.log("Module '" + description.getId() + "' is not resolved yet!");
@@ -357,7 +357,7 @@ public class ModuleManager<M extends Module> {
         if (module == null) {
             try {
                 module = createModule(wrapper);
-            } catch (ModuleException exp) {
+            } catch (final ModuleException exp) {
                 wrapper.setState(ModuleState.FAILED);
                 if (logger != null) {
                     logger.log(exp);
@@ -367,7 +367,7 @@ public class ModuleManager<M extends Module> {
         }
         try {
             module.enable();
-        } catch (Exception exp) {
+        } catch (final Exception exp) {
             wrapper.setState(ModuleState.FAILED);
             if (logger != null) {
                 logger.log(exp);
@@ -379,7 +379,7 @@ public class ModuleManager<M extends Module> {
         if (eventManager != null) {
             try {
                 eventManager.call(new ModuleEnableEvent(wrapper));
-            } catch (Exception exp) {
+            } catch (final Exception exp) {
                 if (logger != null) {
                     logger.log("Failed to call ModuleEnableEvent for module '" + id + "'!", exp);
                 }
@@ -391,10 +391,10 @@ public class ModuleManager<M extends Module> {
     }
 
     public Status disableModules() {
-        ArrayList<ModuleWrapper<M>> wrappers = getModules(ModuleState.ENABLED);
-        Status status = new Status(wrappers.size());
-        for (ModuleWrapper<M> wrapper : wrappers) {
-            ModuleState state = disableModule(wrapper.getDescription().getId());
+        final ArrayList<ModuleWrapper<M>> wrappers = getModules(ModuleState.ENABLED);
+        final Status status = new Status(wrappers.size());
+        for (final ModuleWrapper<M> wrapper : wrappers) {
+            final ModuleState state = disableModule(wrapper.getDescription().getId());
             if (state != ModuleState.DISABLED) {
                 status.failed();
                 continue;
@@ -405,15 +405,15 @@ public class ModuleManager<M extends Module> {
         return status;
     }
 
-    public ModuleState disableModule(String id) {
+    public ModuleState disableModule(final String id) {
 
-        ModuleWrapper<M> wrapper = modules.get(id);
+        final ModuleWrapper<M> wrapper = modules.get(id);
         if (wrapper == null) {
             throw new ModuleException("Module '" + id + "' doesn't exist!");
         }
 
-        ModuleDescription description = wrapper.getDescription();
-        ModuleState state = wrapper.getState();
+        final ModuleDescription description = wrapper.getDescription();
+        final ModuleState state = wrapper.getState();
         if (!state.isResolved()) {
             if (logger != null) {
                 logger.log("Module '" + description.getId() + "' is not resolved yet!");
@@ -427,13 +427,13 @@ public class ModuleManager<M extends Module> {
             return state;
         }
 
-        Module module = wrapper.getModule();
+        final Module module = wrapper.getModule();
         if (module == null) {
             return state;
         }
         try {
             module.disable();
-        } catch (Exception exp) {
+        } catch (final Exception exp) {
             wrapper.setState(ModuleState.FAILED);
             if (logger != null) {
                 logger.log(exp);
@@ -445,7 +445,7 @@ public class ModuleManager<M extends Module> {
         if (eventManager != null) {
             try {
                 eventManager.call(new ModuleDisableEvent(wrapper));
-            } catch (Exception exp) {
+            } catch (final Exception exp) {
                 if (logger != null) {
                     logger.log("Failed to call ModuleDisableEvent for module '" + id + "'!", exp);
                 }
@@ -456,27 +456,27 @@ public class ModuleManager<M extends Module> {
 
     }
 
-    public boolean unloadModule(String id) {
+    public boolean unloadModule(final String id) {
         return unloadModule(id, true);
     }
 
-    protected boolean unloadModule(String id, boolean unloadDependents) {
+    protected boolean unloadModule(final String id, final boolean unloadDependents) {
 
-        ModuleWrapper<M> wrapper = modules.get(id);
+        final ModuleWrapper<M> wrapper = modules.get(id);
         if (wrapper == null) {
             return false;
         }
 
         if (unloadDependents) {
-            ArrayList<String> dependents = getDependents(id);
+            final ArrayList<String> dependents = getDependents(id);
             while (!dependents.isEmpty()) {
-                String dependent = dependents.remove(0);
+                final String dependent = dependents.remove(0);
                 unloadModule(dependent, false);
                 dependents.addAll(0, getDependents(dependent));
             }
         }
 
-        ModuleState state = disableModule(id);
+        final ModuleState state = disableModule(id);
         if (state == ModuleState.ENABLED) {
             return false;
         }
@@ -485,7 +485,7 @@ public class ModuleManager<M extends Module> {
         if (eventManager != null) {
             try {
                 eventManager.call(new ModuleUnloadEvent(wrapper));
-            } catch (Exception exp) {
+            } catch (final Exception exp) {
                 if (logger != null) {
                     logger.log("Failed to call ModuleUnloadEvent for module '" + id + "'!", exp);
                 }
@@ -493,10 +493,10 @@ public class ModuleManager<M extends Module> {
         }
 
         if (classLoaders.containsKey(id)) {
-            ModuleClassLoader loader = classLoaders.get(id);
+            final ModuleClassLoader loader = classLoaders.get(id);
             try {
                 loader.close();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 throw new ModuleException("Unable to close ClassLoader of module '" + id + "'!", e);
             }
             classLoaders.remove(id, loader);
@@ -505,13 +505,13 @@ public class ModuleManager<M extends Module> {
         return true;
     }
 
-    protected ArrayList<String> getDependents(String id) {
-        ArrayList<String> output = new ArrayList<>();
-        for (ModuleWrapper<M> wrapper : getModules()) {
+    protected ArrayList<String> getDependents(final String id) {
+        final ArrayList<String> output = new ArrayList<>();
+        for (final ModuleWrapper<M> wrapper : getModules()) {
             if (wrapper.getDescription().getId().equals(id)) {
                 continue;
             }
-            for (Dependency dependency : wrapper.getDescription().getModuleDependencies()) {
+            for (final Dependency dependency : wrapper.getDescription().getModuleDependencies()) {
                 if (dependency.getId().equals(id)) {
                     output.add(wrapper.getDescription().getId());
                     break;

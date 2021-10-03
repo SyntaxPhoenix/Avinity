@@ -18,8 +18,9 @@ public class ModuleDescription {
     private final String description;
     private final ArrayList<String> authors = new ArrayList<>();
 
-    public ModuleDescription(File file, String id, String classPath, DependencyVersion version, Dependency system,
-        Dependency[] moduleDependencies, Dependency[] pluginDependencies, String description, String[] authors) {
+    public ModuleDescription(final File file, final String id, final String classPath, final DependencyVersion version,
+        final Dependency system, final Dependency[] moduleDependencies, final Dependency[] pluginDependencies, final String description,
+        final String[] authors) {
         this.id = id;
         this.classPath = classPath;
         this.version = version;

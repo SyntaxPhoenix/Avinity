@@ -21,9 +21,9 @@ public class DependencyGraph {
     private boolean cyclic = false;
     private boolean sortedCalled = false;
 
-    public DependencyGraph(ArrayList<ModuleDescription> descriptions) {
-        for (ModuleDescription description : descriptions) {
-            String id = description.getId();
+    public DependencyGraph(final ArrayList<ModuleDescription> descriptions) {
+        for (final ModuleDescription description : descriptions) {
+            final String id = description.getId();
             if (nodes.containsKey(id)) {
                 duplicates.add(id);
                 continue;
@@ -37,21 +37,22 @@ public class DependencyGraph {
             return;
         }
         sortedCalled = true;
-        for (DependencyNode node : nodes.values()) {
+        for (final DependencyNode node : nodes.values()) {
             visit(node);
         }
     }
 
-    private void visit(DependencyNode node) {
-        String id = node.getId();
+    private void visit(final DependencyNode node) {
+        final String id = node.getId();
         if (visited.contains(id)) {
-            if (sorted.contains(id))
+            if (sorted.contains(id)) {
                 return;
+            }
             cyclic = true;
             return;
         }
-        for (Dependency dependency : node.getDependencies()) {
-            String depId = dependency.getId();
+        for (final Dependency dependency : node.getDependencies()) {
+            final String depId = dependency.getId();
             if (!nodes.containsKey(depId)) {
                 if (!dependency.isOptional()) {
                     notFound.add(depId);
@@ -87,7 +88,7 @@ public class DependencyGraph {
     public HashSet<String> getNotFound() {
         return notFound;
     }
-    
+
     public ArrayList<String> getSorted() {
         return sorted;
     }

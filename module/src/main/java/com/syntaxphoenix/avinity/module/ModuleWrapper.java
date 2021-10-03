@@ -12,23 +12,23 @@ public class ModuleWrapper<M extends Module> {
     private M module;
     private ModuleState state = ModuleState.CREATED;
 
-    public ModuleWrapper(ModuleManager<M> manager, ModuleDescription description, File file, ClassLoader loader) {
+    public ModuleWrapper(final ModuleManager<M> manager, final ModuleDescription description, final File file, final ClassLoader loader) {
         this.file = file;
         this.loader = loader;
         this.manager = manager;
         this.description = description;
     }
 
-    final void setState(ModuleState state) {
+    final void setState(final ModuleState state) {
         this.state = state;
     }
 
-    final void setModule(M module) {
+    final void setModule(final M module) {
         this.module = module;
     }
 
-    public boolean hasType(Class<? extends Module> clazz) {
-        return (clazz != null && module != null) && module.getClass().isAssignableFrom(clazz);
+    public boolean hasType(final Class<? extends Module> clazz) {
+        return clazz != null && module != null && module.getClass().isAssignableFrom(clazz);
     }
 
     public ModuleDescription getDescription() {

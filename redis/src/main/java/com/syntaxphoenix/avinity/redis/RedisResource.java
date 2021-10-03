@@ -26,12 +26,12 @@ public class RedisResource implements AutoCloseable, Closeable {
     private final Jedis jedis;
     private final byte[] base;
 
-    public RedisResource(Jedis jedis, String section) {
+    public RedisResource(final Jedis jedis, final String section) {
         this.jedis = jedis;
         this.base = Tools.generateKey(section);
     }
 
-    public boolean set(String key, RModel model) {
+    public boolean set(final String key, final RModel model) {
         if (Objects.isNull(model)) {
             return false;
         }
@@ -39,17 +39,17 @@ public class RedisResource implements AutoCloseable, Closeable {
     }
 
     @SuppressWarnings("unchecked")
-    public boolean set(String key, Object object) {
+    public boolean set(final String key, final Object object) {
         Objects.requireNonNull(object);
-        RModel model = RedisAdapterRegistry.GLOBAL.wrap(Primitives.fromPrimitive((Class<Object>) object.getClass()), object);
+        final RModel model = RedisAdapterRegistry.GLOBAL.wrap(Primitives.fromPrimitive((Class<Object>) object.getClass()), object);
         if (model == null) {
             return false;
         }
         return set0(key, model);
     }
 
-    private boolean set0(String key, RModel model) {
-        byte[] data = RIOModel.MODEL.write(new RNamedModel("root", model));
+    private boolean set0(final String key, final RModel model) {
+        final byte[] data = RIOModel.MODEL.write(new RNamedModel("root", model));
         if (data == null) {
             return false;
         }
@@ -57,23 +57,23 @@ public class RedisResource implements AutoCloseable, Closeable {
         return true;
     }
 
-    public Optional<RModel> get(String key) {
-        return Optional.ofNullable(RIOModel.MODEL.read(jedis.hget(base, Tools.generateKey(key)))).map(named -> named.getModel());
+    public Optional<RModel> get(final String key) {
+        return Optional.ofNullable(RIOModel.MODEL.read(jedis.hget(base, Tools.generateKey(key)))).map(RNamedModel::getModel);
     }
 
-    public Optional<RModel> get(String key, RType type) {
+    public Optional<RModel> get(final String key, final RType type) {
         return get(key).filter(model -> model.getType() == type);
     }
 
-    public boolean has(String key) {
+    public boolean has(final String key) {
         return jedis.hexists(base, Tools.generateKey(key));
     }
 
-    public boolean has(String key, RType type) {
+    public boolean has(final String key, final RType type) {
         return get(key).filter(model -> model.getType() == type).isPresent();
     }
 
-    public boolean remove(String key) {
+    public boolean remove(final String key) {
         return jedis.hdel(base, Tools.generateKey(key)) == 1;
     }
 

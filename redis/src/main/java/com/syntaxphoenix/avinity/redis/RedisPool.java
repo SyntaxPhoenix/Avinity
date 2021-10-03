@@ -12,39 +12,39 @@ import redis.clients.jedis.JedisPool;
 
 public class RedisPool implements Closeable {
 
-	private final JedisPool pool;
+    private final JedisPool pool;
 
-	public RedisPool(JedisPool pool) {
-		this.pool = pool;
-	}
+    public RedisPool(final JedisPool pool) {
+        this.pool = pool;
+    }
 
-	public JedisPool getHandle() {
-		return pool;
-	}
+    public JedisPool getHandle() {
+        return pool;
+    }
 
-	public Jedis newJedis() {
-		return pool.getResource();
-	}
+    public Jedis newJedis() {
+        return pool.getResource();
+    }
 
-	public RedisResource newResource(String section) {
-		return new RedisResource(pool.getResource(), section);
-	}
+    public RedisResource newResource(final String section) {
+        return new RedisResource(pool.getResource(), section);
+    }
 
-	public RedisMessage newMessage() {
-		return new RedisMessage(pool.getResource());
-	}
+    public RedisMessage newMessage() {
+        return new RedisMessage(pool.getResource());
+    }
 
-	public RedisStream newStream(EventManager manager) {
-		return new RedisStream(pool.getResource(), manager);
-	}
+    public RedisStream newStream(final EventManager manager) {
+        return new RedisStream(pool.getResource(), manager);
+    }
 
-	public boolean isClosed() {
-		return pool.isClosed();
-	}
+    public boolean isClosed() {
+        return pool.isClosed();
+    }
 
-	@Override
-	public void close() throws IOException {
-		pool.close();
-	}
+    @Override
+    public void close() throws IOException {
+        pool.close();
+    }
 
 }

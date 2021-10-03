@@ -32,15 +32,15 @@ public enum ModuleState {
      */
     UNLOADED;
 
-    public static ModuleState parse(String value) {
-        for (ModuleState state : ModuleState.values()) {
+    public static ModuleState parse(final String value) {
+        for (final ModuleState state : ModuleState.values()) {
             if (state.name().equalsIgnoreCase(value)) {
                 return state;
             }
         }
         return null;
     }
-    
+
     public boolean isResolved() {
         return this == ENABLED || this == RESOLVED || this == DISABLED || this == FAILED;
     }

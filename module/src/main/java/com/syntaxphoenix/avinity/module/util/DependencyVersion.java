@@ -10,19 +10,19 @@ public class DependencyVersion extends Version {
         this(0);
     }
 
-    public DependencyVersion(int major) {
+    public DependencyVersion(final int major) {
         this(major, 0);
     }
 
-    public DependencyVersion(int major, int minor) {
+    public DependencyVersion(final int major, final int minor) {
         this(major, minor, 0);
     }
 
-    public DependencyVersion(int major, int minor, int patch) {
+    public DependencyVersion(final int major, final int minor, final int patch) {
         this(major, minor, patch, 0);
     }
 
-    public DependencyVersion(int major, int minor, int patch, int revision) {
+    public DependencyVersion(final int major, final int minor, final int patch, final int revision) {
         super(major, minor, patch);
         this.revision = revision;
     }
@@ -32,53 +32,52 @@ public class DependencyVersion extends Version {
     }
 
     @Override
-    protected DependencyVersion setMajor(int major) {
+    protected DependencyVersion setMajor(final int major) {
         super.setMajor(major);
         return this;
     }
 
     @Override
-    protected DependencyVersion setMinor(int minor) {
+    protected DependencyVersion setMinor(final int minor) {
         super.setMinor(minor);
         return this;
     }
 
     @Override
-    protected DependencyVersion setPatch(int patch) {
+    protected DependencyVersion setPatch(final int patch) {
         super.setPatch(patch);
         return this;
     }
 
-    protected DependencyVersion setRevision(int revision) {
+    protected DependencyVersion setRevision(final int revision) {
         this.revision = revision;
         return this;
     }
 
     @Override
-    public boolean isHigher(Version version) {
+    public boolean isHigher(final Version version) {
         if (super.isHigher(version)) {
             return true;
         }
         if (version instanceof DependencyVersion) {
-            DependencyVersion other = (DependencyVersion) version;
+            final DependencyVersion other = (DependencyVersion) version;
             return revision > other.revision;
-        } else {
-            return revision > 0;
         }
+        return revision > 0;
     }
 
     @Override
-    public boolean isSimilar(Version version) {
-        return super.isSimilar(version) && ((version instanceof DependencyVersion) && revision == ((DependencyVersion) version).revision);
+    public boolean isSimilar(final Version version) {
+        return super.isSimilar(version) && version instanceof DependencyVersion && revision == ((DependencyVersion) version).revision;
     }
 
     @Override
-    public boolean isLower(Version version) {
+    public boolean isLower(final Version version) {
         if (super.isHigher(version)) {
             return true;
         }
         if (version instanceof DependencyVersion) {
-            DependencyVersion other = (DependencyVersion) version;
+            final DependencyVersion other = (DependencyVersion) version;
             return revision < other.revision;
         }
         return false;
@@ -90,16 +89,16 @@ public class DependencyVersion extends Version {
     }
 
     @Override
-    public DependencyVersion update(int major, int minor, int patch) {
+    public DependencyVersion update(final int major, final int minor, final int patch) {
         return update(major, minor, patch, 0);
     }
 
-    public DependencyVersion update(int major, int minor, int patch, int revision) {
+    public DependencyVersion update(final int major, final int minor, final int patch, final int revision) {
         return ((DependencyVersion) super.update(major, minor, patch)).setRevision(this.revision + revision);
     }
 
     @Override
-    protected DependencyVersion init(int major, int minor, int patch) {
+    protected DependencyVersion init(final int major, final int minor, final int patch) {
         return new DependencyVersion(major, minor, patch);
     }
 

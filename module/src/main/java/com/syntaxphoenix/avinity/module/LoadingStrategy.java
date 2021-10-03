@@ -11,7 +11,7 @@ public enum LoadingStrategy {
 
     private final ClassSource[] sources;
 
-    private LoadingStrategy(ClassSource... sources) {
+    LoadingStrategy(final ClassSource... sources) {
         this.sources = sources;
     }
 

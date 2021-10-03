@@ -1,26 +1,26 @@
 package com.syntaxphoenix.avinity.module;
 
 public class ModuleAlreadyLoadedException extends ModuleException {
-    
+
     private static final long serialVersionUID = -27785356768110605L;
 
     public ModuleAlreadyLoadedException() {
-        super();
     }
 
-    public ModuleAlreadyLoadedException(String message) {
+    public ModuleAlreadyLoadedException(final String message) {
         super(message);
     }
 
-    public ModuleAlreadyLoadedException(String message, Throwable cause) {
+    public ModuleAlreadyLoadedException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public ModuleAlreadyLoadedException(Throwable cause) {
+    public ModuleAlreadyLoadedException(final Throwable cause) {
         super(cause);
     }
 
-    protected ModuleAlreadyLoadedException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    protected ModuleAlreadyLoadedException(final String message, final Throwable cause, final boolean enableSuppression,
+        final boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 

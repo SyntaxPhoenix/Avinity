@@ -25,7 +25,7 @@ public class DescriptionParser {
 
     private ModuleDescription description;
 
-    public DescriptionParser(File file, BufferedReader reader) {
+    public DescriptionParser(final File file, final BufferedReader reader) {
         this.file = file;
         this.reader = reader;
     }
@@ -37,81 +37,81 @@ public class DescriptionParser {
 
         JsonObject data;
         try {
-            JsonValue<?> raw = PARSER.fromReader(reader);
+            final JsonValue<?> raw = PARSER.fromReader(reader);
             if (!raw.hasType(ValueType.OBJECT)) {
                 throw new ModuleDescriptionException("Invalid module info; Info has to be an json object!");
             }
             data = (JsonObject) raw;
             reader.close();
-        } catch (IOException ioe) {
+        } catch (final IOException ioe) {
             throw new ModuleDescriptionException(ioe);
-        } catch (JsonSyntaxException exp) {
+        } catch (final JsonSyntaxException exp) {
             throw new ModuleDescriptionException("Malformed module info!", exp);
         }
 
-        String id = getAs(data, "id", ValueType.STRING, String.class);
-        String classPath = getAs(data, "main", ValueType.STRING, String.class);
-        String rawVersion = getAs(data, "version", ValueType.STRING, String.class);
+        final String id = getAs(data, "id", ValueType.STRING, String.class);
+        final String classPath = getAs(data, "main", ValueType.STRING, String.class);
+        final String rawVersion = getAs(data, "version", ValueType.STRING, String.class);
 
-        JsonObject rawDependencies = getOr(data, "dependencies", ValueType.OBJECT, JsonObject::new);
-        JsonArray rawPluginDeps = getOr(rawDependencies, "plugin", ValueType.ARRAY, JsonArray::new);
-        JsonArray rawModuleDeps = getOr(rawDependencies, "module", ValueType.ARRAY, JsonArray::new);
+        final JsonObject rawDependencies = getOr(data, "dependencies", ValueType.OBJECT, JsonObject::new);
+        final JsonArray rawPluginDeps = getOr(rawDependencies, "plugin", ValueType.ARRAY, JsonArray::new);
+        final JsonArray rawModuleDeps = getOr(rawDependencies, "module", ValueType.ARRAY, JsonArray::new);
 
-        String rawSystem = getAsOrDefault(data, "description", ValueType.STRING, "system");
-        String description = getAsOrDefault(data, "description", ValueType.STRING, "");
-        JsonArray rawAuthors = getOr(data, "authors", ValueType.ARRAY, JsonArray::new);
+        final String rawSystem = getAsOrDefault(data, "description", ValueType.STRING, "system");
+        final String description = getAsOrDefault(data, "description", ValueType.STRING, "");
+        final JsonArray rawAuthors = getOr(data, "authors", ValueType.ARRAY, JsonArray::new);
 
-        DependencyVersion version = DependencyVersionParser.INSTANCE.analyze(rawVersion);
-        Dependency system = new Dependency(rawSystem);
+        final DependencyVersion version = DependencyVersionParser.INSTANCE.analyze(rawVersion);
+        final Dependency system = new Dependency(rawSystem);
 
-        String[] authors = asStringArray(rawAuthors);
-        String[] pluginDepsArray = asStringArray(rawPluginDeps);
-        String[] moduleDepsArray = asStringArray(rawModuleDeps);
+        final String[] authors = asStringArray(rawAuthors);
+        final String[] pluginDepsArray = asStringArray(rawPluginDeps);
+        final String[] moduleDepsArray = asStringArray(rawModuleDeps);
 
-        Dependency[] pluginDeps = parseDependencies(pluginDepsArray);
-        Dependency[] moduleDeps = parseDependencies(moduleDepsArray);
+        final Dependency[] pluginDeps = parseDependencies(pluginDepsArray);
+        final Dependency[] moduleDeps = parseDependencies(moduleDepsArray);
 
         return this.description = new ModuleDescription(file, id, classPath, version, system, moduleDeps, pluginDeps, description, authors);
     }
 
     @SuppressWarnings("unchecked")
-    private <E> E getAsOrDefault(JsonObject object, String path, ValueType type, E fallback) {
+    private <E> E getAsOrDefault(final JsonObject object, final String path, final ValueType type, final E fallback) {
         return object.has(path, type) ? (E) object.get(path).getValue() : fallback;
     }
 
-    private <E> E getAs(JsonObject object, String path, ValueType type, Class<E> sample) {
+    private <E> E getAs(final JsonObject object, final String path, final ValueType type, final Class<E> sample) {
         return sample.cast(get(object, path, type).getValue());
     }
 
     @SuppressWarnings("unchecked")
-    private <E extends JsonValue<?>> E getOr(JsonObject object, String path, ValueType type, Supplier<E> fallback) {
+    private <E extends JsonValue<?>> E getOr(final JsonObject object, final String path, final ValueType type, final Supplier<E> fallback) {
         return object.has(path, type) ? (E) object.get(path) : fallback.get();
     }
 
-    private JsonValue<?> get(JsonObject object, String path, ValueType type) {
+    private JsonValue<?> get(final JsonObject object, final String path, final ValueType type) {
         if (!object.has(path, type)) {
             throw new ModuleDescriptionException("Module info is missing field '" + path + "'!");
         }
         return object.get(path);
     }
 
-    private Dependency[] parseDependencies(String[] dependencies) {
+    private Dependency[] parseDependencies(final String[] dependencies) {
         if (dependencies.length == 0) {
             return new Dependency[0];
         }
-        ArrayList<Dependency> list = new ArrayList<>();
-        for (String dependency : dependencies) {
+        final ArrayList<Dependency> list = new ArrayList<>();
+        for (final String dependency : dependencies) {
             try {
                 list.add(new Dependency(dependency));
-            } catch (IllegalArgumentException exception) {
+            } catch (final IllegalArgumentException exception) {
                 throw new ModuleDescriptionException("Module description contains malformed dependency", exception);
             }
         }
         return list.toArray(new Dependency[list.size()]);
     }
 
-    private String[] asStringArray(JsonArray data) {
-        String[] output = new String[data.size()];
+    private String[] asStringArray(final JsonArray data) {
+        final String[] output = new String[data.size()];
         for (int index = 0; index < output.length; index++) {
             output[index] = data.get(index).getValue().toString();
         }

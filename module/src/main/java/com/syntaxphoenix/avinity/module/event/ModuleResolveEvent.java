@@ -4,8 +4,8 @@ import com.syntaxphoenix.avinity.module.ModuleWrapper;
 
 public class ModuleResolveEvent extends ModuleEvent {
 
-    public ModuleResolveEvent(ModuleWrapper<?> wrapper) {
+    public ModuleResolveEvent(final ModuleWrapper<?> wrapper) {
         super(wrapper);
     }
-    
+
 }

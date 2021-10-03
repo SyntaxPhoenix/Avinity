@@ -4,8 +4,8 @@ import com.syntaxphoenix.avinity.module.ModuleWrapper;
 
 public class ModuleDisableEvent extends ModuleEvent {
 
-    public ModuleDisableEvent(ModuleWrapper<?> wrapper) {
+    public ModuleDisableEvent(final ModuleWrapper<?> wrapper) {
         super(wrapper);
     }
-    
+
 }

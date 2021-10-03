@@ -5,22 +5,22 @@ public class ModuleDescriptionException extends ModuleException {
     private static final long serialVersionUID = -1552016173553632562L;
 
     public ModuleDescriptionException() {
-        super();
     }
 
-    public ModuleDescriptionException(String message) {
+    public ModuleDescriptionException(final String message) {
         super(message);
     }
 
-    public ModuleDescriptionException(String message, Throwable cause) {
+    public ModuleDescriptionException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public ModuleDescriptionException(Throwable cause) {
+    public ModuleDescriptionException(final Throwable cause) {
         super(cause);
     }
 
-    protected ModuleDescriptionException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    protected ModuleDescriptionException(final String message, final Throwable cause, final boolean enableSuppression,
+        final boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 

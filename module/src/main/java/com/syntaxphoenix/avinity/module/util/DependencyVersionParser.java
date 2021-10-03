@@ -12,14 +12,14 @@ public class DependencyVersionParser implements VersionAnalyzer, VersionFormatte
     private DependencyVersionParser() {}
 
     @Override
-    public DependencyVersion analyze(String formatted) {
-        int[] version = {
+    public DependencyVersion analyze(final String formatted) {
+        final int[] version = {
             0,
             0,
             0,
             0
         };
-        String[] parts = formatted.contains(".") ? formatted.split("\\.")
+        final String[] parts = formatted.contains(".") ? formatted.split("\\.")
             : new String[] {
                 formatted
             };
@@ -36,7 +36,7 @@ public class DependencyVersionParser implements VersionAnalyzer, VersionFormatte
             }
             try {
                 version[index] = Integer.parseInt(parts[index]);
-            } catch (NumberFormatException exception) {
+            } catch (final NumberFormatException exception) {
                 throw new IllegalArgumentException("Version contains non parseable number at position " + length);
             }
             length += parts[index].length();
@@ -45,15 +45,15 @@ public class DependencyVersionParser implements VersionAnalyzer, VersionFormatte
     }
 
     @Override
-    public String format(Version version) {
-        StringBuilder builder = new StringBuilder();
+    public String format(final Version version) {
+        final StringBuilder builder = new StringBuilder();
         builder.append(version.getMajor());
         builder.append('.');
         builder.append(version.getMinor());
         builder.append(".");
         builder.append(version.getPatch());
         if (version instanceof DependencyVersion) {
-            DependencyVersion dependency = (DependencyVersion) version;
+            final DependencyVersion dependency = (DependencyVersion) version;
             if (dependency.getRevision() != 0) {
                 builder.append('.');
                 builder.append(dependency.getRevision());
