@@ -4,14 +4,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.syntaxphoenix.avinity</groupId>
 	<artifactId>avinity</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 	<packaging>pom</packaging>
 	<name>Avinity</name>
 	<modules>
 		<module>module</module>
 		<module>redis</module>
 	</modules>
- 
+
 	<url>https://github.com/SyntaxPhoenix/Avinity</url>
 
 	<licenses>
@@ -20,8 +20,8 @@
 			<url>https://github.com/SyntaxPhoenix/avinity/blob/master/LICENSE</url>
 		</license>
 	</licenses>
- 
- <dependencies>
+
+	<dependencies>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
