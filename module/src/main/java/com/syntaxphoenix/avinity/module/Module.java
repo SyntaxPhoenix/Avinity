@@ -1,5 +1,7 @@
 package com.syntaxphoenix.avinity.module;
 
+import java.io.File;
+
 import com.syntaxphoenix.syntaxapi.event.EventManager;
 
 public abstract class Module {
@@ -8,6 +10,14 @@ public abstract class Module {
 
     final void setWrapper(final ModuleWrapper<?> wrapper) {
         this.wrapper = wrapper;
+    }
+
+    public final String getId() {
+        return wrapper.getDescription().getId();
+    }
+
+    public final File getDataLocation() {
+        return wrapper.getDataLocation();
     }
 
     public final ModuleWrapper<?> getWrapper() {

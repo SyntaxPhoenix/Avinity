@@ -27,6 +27,7 @@ import com.syntaxphoenix.syntaxapi.event.EventManager;
 import com.syntaxphoenix.syntaxapi.logging.ILogger;
 import com.syntaxphoenix.syntaxapi.utils.general.Status;
 import com.syntaxphoenix.syntaxapi.utils.java.Arrays;
+import com.syntaxphoenix.syntaxapi.utils.java.tools.Container;
 import com.syntaxphoenix.syntaxapi.version.Version;
 
 public class ModuleManager<M extends Module> {
@@ -42,6 +43,8 @@ public class ModuleManager<M extends Module> {
 
     private final HashSet<Object> injections = new HashSet<>();
     private final Class<M> moduleClass;
+
+    private final Container<File> dataLocation = Container.of();
 
     public ModuleManager(final Class<M> moduleClass, final Version version) {
         this(moduleClass, null, version);
@@ -70,6 +73,10 @@ public class ModuleManager<M extends Module> {
         return moduleClass;
     }
 
+    public final File getDataLocation() {
+        return dataLocation.get();
+    }
+
     /*
      * Injection Management
      */
@@ -95,6 +102,17 @@ public class ModuleManager<M extends Module> {
     /*
      * Module Managing
      */
+
+    public ModuleManager<M> setDataLocation(File location) {
+        if (dataLocation.isPresent()) {
+            removeInjection(dataLocation.get());
+        }
+        dataLocation.replace(location);
+        if (location != null) {
+            addInjection(location);
+        }
+        return this;
+    }
 
     public ArrayList<ModuleWrapper<M>> getModules() {
         return new ArrayList<>(modules.values());
@@ -229,7 +247,8 @@ public class ModuleManager<M extends Module> {
         final ModuleClassLoader loader = new ModuleClassLoader(this, description, getClass().getClassLoader(), LoadingStrategy.ADM);
         loader.addFile(file);
 
-        final ModuleWrapper<M> wrapper = new ModuleWrapper<>(this, description, file, loader);
+        final ModuleWrapper<M> wrapper = new ModuleWrapper<>(this, description, file,
+            new File(dataLocation.orElse(file.getParentFile()), description.getId()), loader);
 
         if (!isModuleValid(wrapper)) {
             wrapper.setState(ModuleState.UNLOADED);
@@ -243,7 +262,8 @@ public class ModuleManager<M extends Module> {
         if (dependency.hasStrictVersion()) {
             return version.isSimilar(dependency.getMinimum());
         }
-        if ((dependency.hasMinimum() && version.isLower(dependency.getMinimum())) || (dependency.hasMaximum() && version.isHigher(dependency.getMaximum()))) {
+        if ((dependency.hasMinimum() && version.isLower(dependency.getMinimum()))
+            || (dependency.hasMaximum() && version.isHigher(dependency.getMaximum()))) {
             return false;
         }
         return true;
@@ -454,6 +474,26 @@ public class ModuleManager<M extends Module> {
 
         return wrapper.getState();
 
+    }
+
+    public Status unloadModules() {
+        final ArrayList<ModuleWrapper<M>> wrappers = getModules(ModuleState.CREATED, ModuleState.DISABLED, ModuleState.ENABLED,
+            ModuleState.FAILED, ModuleState.RESOLVED);
+        final Status status = new Status(wrappers.size());
+        for (final ModuleWrapper<M> wrapper : wrappers) {
+            if (wrapper.getState() == ModuleState.UNLOADED) {
+                status.success();
+                continue;
+            }
+            final boolean state = unloadModule(wrapper.getDescription().getId());
+            if (!state) {
+                status.failed();
+                continue;
+            }
+            status.success();
+        }
+        status.done();
+        return status;
     }
 
     public boolean unloadModule(final String id) {

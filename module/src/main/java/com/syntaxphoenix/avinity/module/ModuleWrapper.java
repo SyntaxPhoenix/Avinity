@@ -2,21 +2,24 @@ package com.syntaxphoenix.avinity.module;
 
 import java.io.File;
 
-public class ModuleWrapper<M extends Module> {
+public final class ModuleWrapper<M extends Module> {
 
     private final File file;
     private final ClassLoader loader;
     private final ModuleDescription description;
     private final ModuleManager<M> manager;
+    
+    private final File dataLocation;
 
     private M module;
     private ModuleState state = ModuleState.CREATED;
 
-    public ModuleWrapper(final ModuleManager<M> manager, final ModuleDescription description, final File file, final ClassLoader loader) {
+    public ModuleWrapper(final ModuleManager<M> manager, final ModuleDescription description, final File file, final File dataLocation, final ClassLoader loader) {
         this.file = file;
         this.loader = loader;
         this.manager = manager;
         this.description = description;
+        this.dataLocation = dataLocation;
     }
 
     final void setState(final ModuleState state) {
@@ -30,7 +33,15 @@ public class ModuleWrapper<M extends Module> {
     public boolean hasType(final Class<? extends Module> clazz) {
         return clazz != null && module != null && module.getClass().isAssignableFrom(clazz);
     }
-
+    
+    public String getId() {
+        return description.getId();
+        }
+    
+    public File getDataLocation() {
+        return dataLocation;
+    }
+    
     public ModuleDescription getDescription() {
         return description;
     }
