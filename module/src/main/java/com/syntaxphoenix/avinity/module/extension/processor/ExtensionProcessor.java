@@ -66,7 +66,8 @@ public class ExtensionProcessor extends AbstractProcessor {
         if (roundEnv.processingOver()) {
             return false;
         }
-
+        
+        log(Kind.NOTE, "Processing @%s", ExtensionPoint.class.getName());
         for (Element element : roundEnv.getElementsAnnotatedWith(ExtensionPoint.class)) {
             if (element.getKind() != ElementKind.ANNOTATION_TYPE) {
                 continue;
@@ -74,6 +75,7 @@ public class ExtensionProcessor extends AbstractProcessor {
             processExtensionPoint(element);
         }
 
+        log(Kind.NOTE, "Processing @%s", Extension.class.getName());
         for (Element element : roundEnv.getElementsAnnotatedWith(Extension.class)) {
             if (element.getKind() != ElementKind.ANNOTATION_TYPE) {
                 continue;
@@ -81,6 +83,7 @@ public class ExtensionProcessor extends AbstractProcessor {
             processExtension(element);
         }
 
+        log(Kind.NOTE, "Saving ExtensionPoints (%s) and Extensions (%s) to file", extensionMap.size(), extensionPointMap.size());
         try {
             FileObject file = processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", EXTENSIONS_RESOURCE);
             try (Writer writer = file.openWriter()) {
