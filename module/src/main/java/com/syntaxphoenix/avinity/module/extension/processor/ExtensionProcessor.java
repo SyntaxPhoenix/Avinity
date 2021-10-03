@@ -2,6 +2,7 @@ package com.syntaxphoenix.avinity.module.extension.processor;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.function.Function;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
@@ -47,6 +49,16 @@ public class ExtensionProcessor extends AbstractProcessor {
         this.typeHelper = processingEnv.getTypeUtils();
         this.elementHelper = processingEnv.getElementUtils();
         this.extensionType = elementHelper.getTypeElement(IExtension.class.getName()).asType();
+    }
+
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return SourceVersion.latest();
+    }
+
+    @Override
+    public Set<String> getSupportedAnnotationTypes() {
+        return Collections.singleton("*");
     }
 
     @Override
