@@ -5,7 +5,7 @@
  <parent>
   <groupId>com.syntaxphoenix.avinity</groupId>
   <artifactId>avinity</artifactId>
-  <version>1.0.0</version>
+  <version>1.1.0</version>
  </parent>
 	<artifactId>module</artifactId>
 	<description>A small module loader system</description>
