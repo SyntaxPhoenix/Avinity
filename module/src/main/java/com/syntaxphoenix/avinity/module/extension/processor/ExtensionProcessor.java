@@ -94,13 +94,14 @@ public class ExtensionProcessor extends AbstractProcessor {
     }
 
     private void processExtension(Element element) {
+        log(Kind.NOTE, "Processing Extension '%s'", element.asType().toString());
         if (!(element instanceof TypeElement)) {
-            log(Kind.ERROR, "ExtensionPoint annotation is only available for classes");
+            log(Kind.ERROR, "Extension annotation is only available for classes");
             return;
         }
         TypeMirror type = element.asType();
         if (!typeHelper.isAssignable(type, extensionType)) {
-            log(Kind.ERROR, "%s is not an ExtensionPoint (doesn't implement IExtension)", element);
+            log(Kind.ERROR, "%s is not an Extension (doesn't implement IExtension)", element);
             return;
         }
         TypeElement typeElement = (TypeElement) element;
@@ -112,6 +113,7 @@ public class ExtensionProcessor extends AbstractProcessor {
         if (extensionMap.containsKey(typeName)) {
             return; // Don't know if that will even happen
         }
+        log(Kind.NOTE, "Collecting ExtensionPoints for ", typeName);
         HashSet<String> extensions = extensionMap.computeIfAbsent(typeName, HASHSET_BUILDER);
         for (TypeMirror mirror : typeElement.getInterfaces()) {
             String mirrorName = mirror.toString();
@@ -124,6 +126,7 @@ public class ExtensionProcessor extends AbstractProcessor {
     }
 
     private void processExtensionPoint(Element element) {
+        log(Kind.NOTE, "Processing ExtensionPoint '%s'", element.asType().toString());
         if (!(element instanceof TypeElement)) {
             log(Kind.ERROR, "ExtensionPoint annotation is only available for classes");
             return;
@@ -142,6 +145,7 @@ public class ExtensionProcessor extends AbstractProcessor {
         if (extensionPointMap.containsKey(typeName)) {
             return; // Already processed
         }
+        log(Kind.NOTE, "Searching for sub points in '%s'", typeName);
         findPoints(extensionPointMap.computeIfAbsent(typeName, HASHSET_BUILDER), typeElement);
     }
 
