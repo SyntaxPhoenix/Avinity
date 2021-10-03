@@ -64,6 +64,7 @@ public class ExtensionProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         if (roundEnv.processingOver()) {
+            log(Kind.OTHER, "This is a placeholder line");
             return false;
         }
         
