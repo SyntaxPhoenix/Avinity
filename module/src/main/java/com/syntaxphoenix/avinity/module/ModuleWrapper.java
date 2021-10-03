@@ -29,6 +29,10 @@ public final class ModuleWrapper<M extends Module> {
     final void setModule(final M module) {
         this.module = module;
     }
+    
+    public boolean isFromModule(final Class<?> clazz) {
+        return loader == clazz.getClassLoader();
+    }
 
     public boolean hasType(final Class<? extends Module> clazz) {
         return clazz != null && module != null && module.getClass().isAssignableFrom(clazz);
