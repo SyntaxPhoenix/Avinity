@@ -75,12 +75,32 @@ public class ExtensionProcessor extends AbstractProcessor {
             processExtensionPoint(element);
         }
 
+        log(Kind.NOTE, "Processing nested @%s", ExtensionPoint.class.getName());
+        for(TypeElement typeElement : annotations) {
+            if(ExtensionUtils.getAnnotationMirror(typeElement, ExtensionPoint.class) == null) {
+                continue;
+            }
+            for(Element element : roundEnv.getElementsAnnotatedWith(typeElement)) {
+                processExtensionPoint(element);
+            }
+        }
+
         log(Kind.NOTE, "Processing @%s", Extension.class.getName());
         for (Element element : roundEnv.getElementsAnnotatedWith(Extension.class)) {
             if (element.getKind() != ElementKind.ANNOTATION_TYPE) {
                 continue;
             }
             processExtension(element);
+        }
+
+        log(Kind.NOTE, "Processing nested @%s", Extension.class.getName());
+        for(TypeElement typeElement : annotations) {
+            if(ExtensionUtils.getAnnotationMirror(typeElement, Extension.class) == null) {
+                continue;
+            }
+            for(Element element : roundEnv.getElementsAnnotatedWith(typeElement)) {
+                processExtension(element);
+            }
         }
 
         log(Kind.NOTE, "Saving ExtensionPoints (%s) and Extensions (%s) to file", extensionMap.size(), extensionPointMap.size());
