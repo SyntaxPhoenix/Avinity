@@ -64,42 +64,41 @@ public class ExtensionProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         if (roundEnv.processingOver()) {
-            log(Kind.OTHER, "This is a placeholder line");
             return false;
         }
-        
+
         log(Kind.NOTE, "Processing @%s", ExtensionPoint.class.getName());
         for (Element element : roundEnv.getElementsAnnotatedWith(ExtensionPoint.class)) {
-            if (element.getKind() != ElementKind.ANNOTATION_TYPE) {
+            if (element.getKind() == ElementKind.ANNOTATION_TYPE) {
                 continue;
             }
             processExtensionPoint(element);
         }
 
         log(Kind.NOTE, "Processing nested @%s", ExtensionPoint.class.getName());
-        for(TypeElement typeElement : annotations) {
-            if(ExtensionUtils.getAnnotationMirror(typeElement, ExtensionPoint.class) == null) {
+        for (TypeElement typeElement : annotations) {
+            if (ExtensionUtils.getAnnotationMirror(typeElement, ExtensionPoint.class) == null) {
                 continue;
             }
-            for(Element element : roundEnv.getElementsAnnotatedWith(typeElement)) {
+            for (Element element : roundEnv.getElementsAnnotatedWith(typeElement)) {
                 processExtensionPoint(element);
             }
         }
 
         log(Kind.NOTE, "Processing @%s", Extension.class.getName());
         for (Element element : roundEnv.getElementsAnnotatedWith(Extension.class)) {
-            if (element.getKind() != ElementKind.ANNOTATION_TYPE) {
+            if (element.getKind() == ElementKind.ANNOTATION_TYPE) {
                 continue;
             }
             processExtension(element);
         }
 
         log(Kind.NOTE, "Processing nested @%s", Extension.class.getName());
-        for(TypeElement typeElement : annotations) {
-            if(ExtensionUtils.getAnnotationMirror(typeElement, Extension.class) == null) {
+        for (TypeElement typeElement : annotations) {
+            if (ExtensionUtils.getAnnotationMirror(typeElement, Extension.class) == null) {
                 continue;
             }
-            for(Element element : roundEnv.getElementsAnnotatedWith(typeElement)) {
+            for (Element element : roundEnv.getElementsAnnotatedWith(typeElement)) {
                 processExtension(element);
             }
         }
@@ -175,9 +174,8 @@ public class ExtensionProcessor extends AbstractProcessor {
 
     private void findPoints(HashSet<String> points, TypeElement element) {
         List<? extends TypeMirror> interfaces = element.getInterfaces();
-        interfaces.remove(extensionType);
         for (TypeMirror mirror : interfaces) {
-            if (!typeHelper.isAssignable(mirror, extensionType)) {
+            if (!typeHelper.isAssignable(mirror, extensionType) || mirror == extensionType) {
                 continue;
             }
             String typeName = mirror.toString();
@@ -194,12 +192,14 @@ public class ExtensionProcessor extends AbstractProcessor {
      * Logging
      */
 
-    public void log(Kind type, String message, Object... arguments) {
-        processingEnv.getMessager().printMessage(type, String.format(message, arguments));
-    }
-
-    public void log(Kind type, Element element, String message, Object... arguments) {
-        processingEnv.getMessager().printMessage(type, String.format(message, arguments), element);
+    public void log(Kind kind, String message, Object... arguments) {
+        String out = String.format(message, arguments);
+        processingEnv.getMessager().printMessage(kind, out);
+        if (kind == Kind.ERROR) {
+            System.out.println("[ERROR] " + out);
+            return;
+        }
+        System.out.println("[INFO] " + out);
     }
 
 }
