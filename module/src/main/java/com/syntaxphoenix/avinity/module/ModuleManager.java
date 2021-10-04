@@ -21,6 +21,7 @@ import com.syntaxphoenix.avinity.module.event.ModuleEnableEvent;
 import com.syntaxphoenix.avinity.module.event.ModuleResolveEvent;
 import com.syntaxphoenix.avinity.module.event.ModuleUnloadEvent;
 import com.syntaxphoenix.avinity.module.extension.handler.ExtensionManager;
+import com.syntaxphoenix.avinity.module.util.DependencyVersion;
 import com.syntaxphoenix.avinity.module.util.DescriptionParser;
 import com.syntaxphoenix.avinity.module.util.InstanceCreator;
 import com.syntaxphoenix.avinity.module.util.graph.DependencyGraph;
@@ -30,7 +31,6 @@ import com.syntaxphoenix.syntaxapi.utils.general.Status;
 import com.syntaxphoenix.syntaxapi.utils.java.Arrays;
 import com.syntaxphoenix.syntaxapi.utils.java.Streams;
 import com.syntaxphoenix.syntaxapi.utils.java.tools.Container;
-import com.syntaxphoenix.syntaxapi.version.Version;
 
 public class ModuleManager<M extends Module> {
 
@@ -39,7 +39,7 @@ public class ModuleManager<M extends Module> {
 
     private final ArrayList<File> moduleRepos = new ArrayList<>();
 
-    private final Version version;
+    private final DependencyVersion version;
     private final ILogger logger;
     private final EventManager eventManager;
 
@@ -49,32 +49,46 @@ public class ModuleManager<M extends Module> {
     private final Container<File> dataLocation = Container.of();
 
     private final ExtensionManager<M> extensionManager = new ExtensionManager<>(this);
+    
+    private final ModuleWrapper<M> system;
 
-    public ModuleManager(final Class<M> moduleClass, final Version version) {
+    public ModuleManager(final Class<M> moduleClass, final DependencyVersion version) {
         this(moduleClass, null, version);
     }
 
-    public ModuleManager(final Class<M> moduleClass, final EventManager eventManager, final Version version) {
+    public ModuleManager(final Class<M> moduleClass, final EventManager eventManager, final DependencyVersion version) {
         this.moduleClass = Objects.requireNonNull(moduleClass, "Module class can't be null!");
         this.version = Objects.requireNonNull(version, "System version can't be null!");
         this.eventManager = eventManager;
         this.logger = eventManager != null && eventManager.hasLogger() ? eventManager.getLogger() : null;
+        
+        ModuleDescription description = new ModuleDescription(null, "system", null, version, null, new Dependency[0], new Dependency[0], "Core system", new String[0]);
+        system = new ModuleWrapper<>(this, description, null, null, null);
+        system.setState(ModuleState.ENABLED);
     }
 
     /*
      * Getter
      */
 
-    public final Version getVersion() {
-        return version;
-    }
-
     public final ILogger getLogger() {
         return logger;
+    }
+    
+    public final ModuleWrapper<M> getSystem() {
+        return system;
     }
 
     public final EventManager getEventManager() {
         return eventManager;
+    }
+
+    public final DependencyVersion getVersion() {
+        return version;
+    }
+    
+    public final ExtensionManager<M> getExtensionManager() {
+        return extensionManager;
     }
 
     public final Class<M> getModuleType() {
@@ -259,6 +273,9 @@ public class ModuleManager<M extends Module> {
         }
         if (modules.containsKey(description.getId())) {
             throw new ModuleAlreadyLoadedException("There is already a module with the id '" + description.getId() + "'");
+        }
+        if(description.getId().equals("system")) {
+            throw new ModuleException("'system' can't be used a module! (" + file.getPath() + ")");
         }
         final ModuleClassLoader loader = new ModuleClassLoader(this, description, getClass().getClassLoader(), LoadingStrategy.ADM);
         loader.addFile(file);

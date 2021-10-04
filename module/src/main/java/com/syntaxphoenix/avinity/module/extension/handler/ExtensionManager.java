@@ -39,6 +39,11 @@ public class ExtensionManager<M extends Module> {
      * Extension Loading
      */
 
+    public void loadSystemExtensions(String data) {
+        loadExtensions("system", data);
+        injectExtensions(moduleManager.getSystem());
+    }
+
     public void loadExtensions(String module, String data) {
         JsonValue<?> rootElement = null;
         try {
@@ -123,11 +128,39 @@ public class ExtensionManager<M extends Module> {
     }
 
     public <V extends IExtension> List<V> getExtensionsOf(String moduleId, Class<V> clazz) {
+        if (moduleId == null) {
+            return getExtensions(clazz);
+        }
+        if (moduleId.equals("system")) {
+            return getSystemExtensions(clazz);
+        }
         Optional<ModuleWrapper<M>> option = moduleManager.getModule(moduleId);
         if (option.isEmpty()) {
             return Collections.emptyList();
         }
         ModuleWrapper<M> module = option.get();
+        ArrayList<V> output = new ArrayList<>();
+        int size = extensions.size();
+        for (int index = 0; index < size; index++) {
+            ExtensionWrapper wrapper = extensions.get(index);
+            if (module != wrapper.getOwner() || !wrapper.isAssignable(clazz)) {
+                continue;
+            }
+            try {
+                IExtension extension = wrapper.getInstance();
+                if (!clazz.isInstance(extension)) {
+                    continue;
+                }
+                output.add(clazz.cast(extension));
+            } catch (IllegalStateException exp) {
+                log(LogTypeId.WARNING, exp);
+            }
+        }
+        return output;
+    }
+
+    public <V extends IExtension> List<V> getSystemExtensions(Class<V> clazz) {
+        ModuleWrapper<M> module = moduleManager.getSystem();
         ArrayList<V> output = new ArrayList<>();
         int size = extensions.size();
         for (int index = 0; index < size; index++) {
