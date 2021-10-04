@@ -20,6 +20,7 @@ import com.syntaxphoenix.avinity.module.event.ModuleDisableEvent;
 import com.syntaxphoenix.avinity.module.event.ModuleEnableEvent;
 import com.syntaxphoenix.avinity.module.event.ModuleResolveEvent;
 import com.syntaxphoenix.avinity.module.event.ModuleUnloadEvent;
+import com.syntaxphoenix.avinity.module.extension.handler.ExtensionManager;
 import com.syntaxphoenix.avinity.module.util.DescriptionParser;
 import com.syntaxphoenix.avinity.module.util.InstanceCreator;
 import com.syntaxphoenix.avinity.module.util.graph.DependencyGraph;
@@ -27,6 +28,7 @@ import com.syntaxphoenix.syntaxapi.event.EventManager;
 import com.syntaxphoenix.syntaxapi.logging.ILogger;
 import com.syntaxphoenix.syntaxapi.utils.general.Status;
 import com.syntaxphoenix.syntaxapi.utils.java.Arrays;
+import com.syntaxphoenix.syntaxapi.utils.java.Streams;
 import com.syntaxphoenix.syntaxapi.utils.java.tools.Container;
 import com.syntaxphoenix.syntaxapi.version.Version;
 
@@ -46,6 +48,8 @@ public class ModuleManager<M extends Module> {
 
     private final Container<File> dataLocation = Container.of();
 
+    private final ExtensionManager extensionManager = new ExtensionManager(this);
+
     public ModuleManager(final Class<M> moduleClass, final Version version) {
         this(moduleClass, null, version);
     }
@@ -63,6 +67,10 @@ public class ModuleManager<M extends Module> {
 
     public final Version getVersion() {
         return version;
+    }
+
+    public final ILogger getLogger() {
+        return logger;
     }
 
     public final EventManager getEventManager() {
@@ -228,12 +236,20 @@ public class ModuleManager<M extends Module> {
         ModuleDescription description = null;
         try (JarFile jar = new JarFile(file)) {
             final Enumeration<JarEntry> entries = jar.entries();
+            JarEntry extensions = null;
             while (entries.hasMoreElements()) {
                 final JarEntry entry = entries.nextElement();
                 if (!"module.json".equalsIgnoreCase(entry.getName())) {
+                    if (extensions != null || !"extensions.json".equalsIgnoreCase(entry.getName())) {
+                        continue;
+                    }
+                    extensions = entry;
                     continue;
                 }
                 description = new DescriptionParser(file, new BufferedReader(new InputStreamReader(jar.getInputStream(entry)))).parse();
+            }
+            if (extensions != null) {
+                extensionManager.loadExtensions(description.getId(), Streams.toString(jar.getInputStream(extensions)));
             }
         } catch (final IOException exp) {
             throw new ModuleException(exp);
@@ -252,7 +268,10 @@ public class ModuleManager<M extends Module> {
 
         if (!isModuleValid(wrapper)) {
             wrapper.setState(ModuleState.UNLOADED);
+            return wrapper;
         }
+
+        extensionManager.injectExtensions(wrapper);
 
         return wrapper;
     }
@@ -384,6 +403,8 @@ public class ModuleManager<M extends Module> {
                 }
                 return wrapper.getState();
             }
+            wrapper.setModule(module);
+            module.setWrapper(wrapper);
         }
         try {
             module.enable();

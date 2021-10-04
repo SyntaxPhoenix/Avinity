@@ -13,6 +13,7 @@ import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
@@ -77,7 +78,7 @@ public class ExtensionProcessor extends AbstractProcessor {
 
         log(Kind.NOTE, "Processing nested @%s", ExtensionPoint.class.getName());
         for (TypeElement typeElement : annotations) {
-            if (ExtensionUtils.getAnnotationMirror(typeElement, ExtensionPoint.class) == null) {
+            if (getAnnotationMirror(typeElement, ExtensionPoint.class) == null) {
                 continue;
             }
             for (Element element : roundEnv.getElementsAnnotatedWith(typeElement)) {
@@ -95,7 +96,7 @@ public class ExtensionProcessor extends AbstractProcessor {
 
         log(Kind.NOTE, "Processing nested @%s", Extension.class.getName());
         for (TypeElement typeElement : annotations) {
-            if (ExtensionUtils.getAnnotationMirror(typeElement, Extension.class) == null) {
+            if (getAnnotationMirror(typeElement, Extension.class) == null) {
                 continue;
             }
             for (Element element : roundEnv.getElementsAnnotatedWith(typeElement)) {
@@ -128,7 +129,7 @@ public class ExtensionProcessor extends AbstractProcessor {
             return;
         }
         TypeElement typeElement = (TypeElement) element;
-        if (ExtensionUtils.getAnnotationMirror(typeElement, ExtensionPoint.class) != null) {
+        if (getAnnotationMirror(typeElement, ExtensionPoint.class) != null) {
             log(Kind.ERROR, "%s ExtensionPoint can't be a Extension at the same time!");
             return;
         }
@@ -160,7 +161,7 @@ public class ExtensionProcessor extends AbstractProcessor {
             return;
         }
         TypeElement typeElement = (TypeElement) element;
-        if (ExtensionUtils.getAnnotationMirror(typeElement, Extension.class) != null) {
+        if (getAnnotationMirror(typeElement, Extension.class) != null) {
             log(Kind.ERROR, "%s ExtensionPoint can't be a Extension at the same time!", element);
             return;
         }
@@ -200,6 +201,20 @@ public class ExtensionProcessor extends AbstractProcessor {
             return;
         }
         System.out.println("[INFO] " + out);
+    }
+
+    /*
+     * Helper
+     */
+
+    public static AnnotationMirror getAnnotationMirror(TypeElement element, Class<?> annotation) {
+        String annotationName = annotation.getName();
+        for (AnnotationMirror mirror : element.getAnnotationMirrors()) {
+            if (mirror.getAnnotationType().toString().equals(annotationName)) {
+                return mirror;
+            }
+        }
+        return null;
     }
 
 }
