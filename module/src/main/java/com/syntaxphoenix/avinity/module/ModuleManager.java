@@ -48,7 +48,7 @@ public class ModuleManager<M extends Module> {
 
     private final Container<File> dataLocation = Container.of();
 
-    private final ExtensionManager extensionManager = new ExtensionManager(this);
+    private final ExtensionManager<M> extensionManager = new ExtensionManager<>(this);
 
     public ModuleManager(final Class<M> moduleClass, final Version version) {
         this(moduleClass, null, version);
