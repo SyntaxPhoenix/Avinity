@@ -55,6 +55,9 @@ public class DependencyGraph {
             for (final DependencyNode node : nodes.values()) {
                 visit(node);
             }
+            if (dontLoad.isEmpty()) {
+                continue;
+            }
             for (final String id : dontLoad) {
                 unloaded.computeIfAbsent(id, FUNCTION).add(nodes.remove(id));
             }
@@ -146,7 +149,7 @@ public class DependencyGraph {
         }
         return missing;
     }
-    
+
     public HashSet<String> getCyclics() {
         return cyclics;
     }
