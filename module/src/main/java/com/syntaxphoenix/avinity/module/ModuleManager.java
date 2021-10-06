@@ -390,8 +390,8 @@ public class ModuleManager<M extends Module> {
         final ArrayList<ModuleWrapper<M>> wrappers = getModules(ModuleState.RESOLVED, ModuleState.DISABLED);
         final Status status = new Status(wrappers.size());
         for (final ModuleWrapper<M> wrapper : wrappers) {
-            final ModuleState state = disableModule(wrapper.getDescription().getId());
-            if (state != ModuleState.DISABLED) {
+            final ModuleState state = enableModule(wrapper.getDescription().getId());
+            if (state != ModuleState.ENABLED) {
                 status.failed();
                 continue;
             }
