@@ -23,14 +23,24 @@ public enum ModuleState {
     DISABLED,
 
     /*
+     * The module has been unloaded
+     */
+    UNLOADED,
+
+    /*
      * The module was unable to start
      */
-    FAILED,
+    FAILED_START,
+
+    /*
+     * The module was unable to stop
+     */
+    FAILED_STOP,
 
     /*
      * The module was unable to load
      */
-    UNLOADED;
+    FAILED_LOAD;
 
     public static ModuleState parse(final String value) {
         for (final ModuleState state : ModuleState.values()) {
@@ -42,7 +52,7 @@ public enum ModuleState {
     }
 
     public boolean isResolved() {
-        return this == ENABLED || this == RESOLVED || this == DISABLED || this == FAILED;
+        return this == ENABLED || this == RESOLVED || this == DISABLED || this == FAILED_START || this == FAILED_STOP;
     }
 
 }

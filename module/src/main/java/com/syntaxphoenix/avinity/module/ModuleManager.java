@@ -8,6 +8,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
@@ -24,7 +25,9 @@ import com.syntaxphoenix.avinity.module.extension.handler.ExtensionManager;
 import com.syntaxphoenix.avinity.module.util.DependencyVersion;
 import com.syntaxphoenix.avinity.module.util.DescriptionParser;
 import com.syntaxphoenix.avinity.module.util.InstanceCreator;
+import com.syntaxphoenix.avinity.module.util.StringHelper;
 import com.syntaxphoenix.avinity.module.util.graph.DependencyGraph;
+import com.syntaxphoenix.avinity.module.util.graph.MissingType;
 import com.syntaxphoenix.syntaxapi.event.EventManager;
 import com.syntaxphoenix.syntaxapi.logging.ILogger;
 import com.syntaxphoenix.syntaxapi.utils.general.Status;
@@ -49,7 +52,7 @@ public class ModuleManager<M extends Module> {
     private final Container<File> dataLocation = Container.of();
 
     private final ExtensionManager<M> extensionManager = new ExtensionManager<>(this);
-    
+
     private final ModuleWrapper<M> system;
 
     public ModuleManager(final Class<M> moduleClass, final DependencyVersion version) {
@@ -61,8 +64,9 @@ public class ModuleManager<M extends Module> {
         this.version = Objects.requireNonNull(version, "System version can't be null!");
         this.eventManager = eventManager;
         this.logger = eventManager != null && eventManager.hasLogger() ? eventManager.getLogger() : null;
-        
-        ModuleDescription description = new ModuleDescription(null, "system", null, version, null, new Dependency[0], new Dependency[0], "Core system", new String[0]);
+
+        ModuleDescription description = new ModuleDescription(null, "system", null, version, null, new Dependency[0], new Dependency[0],
+            "Core system", new String[0]);
         system = new ModuleWrapper<>(this, description, null, null, null);
         system.setState(ModuleState.ENABLED);
     }
@@ -74,7 +78,7 @@ public class ModuleManager<M extends Module> {
     public final ILogger getLogger() {
         return logger;
     }
-    
+
     public final ModuleWrapper<M> getSystem() {
         return system;
     }
@@ -86,7 +90,7 @@ public class ModuleManager<M extends Module> {
     public final DependencyVersion getVersion() {
         return version;
     }
-    
+
     public final ExtensionManager<M> getExtensionManager() {
         return extensionManager;
     }
@@ -274,17 +278,23 @@ public class ModuleManager<M extends Module> {
         if (modules.containsKey(description.getId())) {
             throw new ModuleAlreadyLoadedException("There is already a module with the id '" + description.getId() + "'");
         }
-        if(description.getId().equals("system")) {
+        if (description.getId().equals("system")) {
             throw new ModuleException("'system' can't be used a module! (" + file.getPath() + ")");
         }
+
         final ModuleClassLoader loader = new ModuleClassLoader(this, description, getClass().getClassLoader(), LoadingStrategy.ADM);
         loader.addFile(file);
 
         final ModuleWrapper<M> wrapper = new ModuleWrapper<>(this, description, file,
             new File(dataLocation.orElse(file.getParentFile()), description.getId()), loader);
 
+        modules.put(wrapper.getId(), wrapper);
+        classLoaders.put(wrapper.getId(), loader);
+
         if (!isModuleValid(wrapper)) {
-            wrapper.setState(ModuleState.UNLOADED);
+            wrapper
+                .setFailedException(new ModuleException("Failed to load module: System version unsupported (" + version.toString() + ")"));
+            wrapper.setState(ModuleState.FAILED_LOAD);
             return wrapper;
         }
 
@@ -305,23 +315,25 @@ public class ModuleManager<M extends Module> {
         return true;
     }
 
-    protected void resolveModules() {
+    public void resolveModules() {
         final ArrayList<ModuleDescription> descriptions = new ArrayList<>();
-        for (final ModuleWrapper<M> wrapper : getModules()) {
+        for (final ModuleWrapper<M> wrapper : getModules(ModuleState.CREATED)) {
             descriptions.add(wrapper.getDescription());
         }
 
         final DependencyGraph graph = new DependencyGraph(descriptions);
         descriptions.clear();
-        if (graph.hasDuplicates()) {
-            throw new ModuleException("There are some module duplicates: [" + String.join(", ", graph.getDuplicates()) + "]");
-        }
         graph.sort();
-        if (graph.isCyclic()) {
-            throw new ModuleException("Some modules have cyclic dependencies!");
-        }
-        if (graph.hasNotFound()) {
-            throw new ModuleException("There are some dependencies missing: [" + String.join(", ", graph.getNotFound()) + "]");
+        if (graph.hasUnloaded()) {
+            for (final String id : graph.getUnloaded()) {
+                HashMap<String, MissingType> map = graph.getMissing(id);
+                if (map == null || map.isEmpty()) {
+                    continue; // Normally that shouldn't be the case but maybe it happens
+                }
+                ModuleWrapper<M> wrapper = modules.get(id);
+                wrapper.setFailedException(new ModuleException("couldn't be loaded: " + StringHelper.toString(map)));
+                wrapper.setState(ModuleState.FAILED_LOAD);
+            }
         }
 
         final ArrayList<String> sorted = graph.getSorted();
@@ -414,10 +426,11 @@ public class ModuleManager<M extends Module> {
             try {
                 module = createModule(wrapper);
             } catch (final ModuleException exp) {
-                wrapper.setState(ModuleState.FAILED);
+                wrapper.setState(ModuleState.FAILED_START);
                 if (logger != null) {
                     logger.log(exp);
                 }
+                wrapper.setFailedException(new ModuleException("Failed to create module", exp));
                 return wrapper.getState();
             }
             wrapper.setModule(module);
@@ -426,10 +439,11 @@ public class ModuleManager<M extends Module> {
         try {
             module.enable();
         } catch (final Exception exp) {
-            wrapper.setState(ModuleState.FAILED);
+            wrapper.setState(ModuleState.FAILED_START);
             if (logger != null) {
                 logger.log(exp);
             }
+            wrapper.setFailedException(new ModuleException("Failed to enable module", exp));
             return wrapper.getState();
         }
 
@@ -478,7 +492,7 @@ public class ModuleManager<M extends Module> {
             }
             return state;
         }
-        if (state == ModuleState.DISABLED || state == ModuleState.FAILED) {
+        if (state == ModuleState.DISABLED || state == ModuleState.FAILED_START || state == ModuleState.FAILED_LOAD) {
             if (logger != null) {
                 logger.log("Module '" + description.getId() + "' is already disabled!");
             }
@@ -492,10 +506,11 @@ public class ModuleManager<M extends Module> {
         try {
             module.disable();
         } catch (final Exception exp) {
-            wrapper.setState(ModuleState.FAILED);
+            wrapper.setState(ModuleState.FAILED_STOP);
             if (logger != null) {
                 logger.log(exp);
             }
+            wrapper.setFailedException(new ModuleException("Failed to disable module", exp));
             return wrapper.getState();
         }
 
@@ -515,14 +530,9 @@ public class ModuleManager<M extends Module> {
     }
 
     public Status unloadModules() {
-        final ArrayList<ModuleWrapper<M>> wrappers = getModules(ModuleState.CREATED, ModuleState.DISABLED, ModuleState.ENABLED,
-            ModuleState.FAILED, ModuleState.RESOLVED);
+        final ArrayList<ModuleWrapper<M>> wrappers = getModules();
         final Status status = new Status(wrappers.size());
         for (final ModuleWrapper<M> wrapper : wrappers) {
-            if (wrapper.getState() == ModuleState.UNLOADED) {
-                status.success();
-                continue;
-            }
             final boolean state = unloadModule(wrapper.getDescription().getId());
             if (!state) {
                 status.failed();

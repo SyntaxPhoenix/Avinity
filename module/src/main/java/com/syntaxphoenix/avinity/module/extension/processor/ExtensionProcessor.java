@@ -104,7 +104,7 @@ public class ExtensionProcessor extends AbstractProcessor {
             }
         }
 
-        log(Kind.NOTE, "Saving ExtensionPoints (%s) and Extensions (%s) to file", extensionMap.size(), extensionPointMap.size());
+        log(Kind.NOTE, "Saving ExtensionPoints (%s) and Extensions (%s) to file", extensionPointMap.size(), extensionMap.size());
         try {
             FileObject file = processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", EXTENSIONS_RESOURCE);
             try (Writer writer = file.openWriter()) {
