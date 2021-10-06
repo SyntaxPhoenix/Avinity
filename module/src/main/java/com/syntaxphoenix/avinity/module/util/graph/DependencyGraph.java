@@ -77,6 +77,7 @@ public class DependencyGraph {
             dontLoad.add(id);
             return;
         }
+        visited.add(id);
         for (final Dependency dependency : node.getDependencies()) {
             final String depId = dependency.getId();
             if (!nodes.containsKey(depId)) {

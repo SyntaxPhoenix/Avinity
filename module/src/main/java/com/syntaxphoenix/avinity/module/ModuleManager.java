@@ -327,10 +327,12 @@ public class ModuleManager<M extends Module> {
         if (graph.hasUnloaded()) {
             for (final String id : graph.getUnloaded()) {
                 HashMap<String, MissingType> map = graph.getMissing(id);
+                ModuleWrapper<M> wrapper = modules.get(id);
                 if (map == null || map.isEmpty()) {
+                    wrapper.setFailedException(new ModuleException("couldn't be loaded"));
+                    wrapper.setState(ModuleState.FAILED_LOAD);
                     continue; // Normally that shouldn't be the case but maybe it happens
                 }
-                ModuleWrapper<M> wrapper = modules.get(id);
                 wrapper.setFailedException(new ModuleException("couldn't be loaded: " + StringHelper.toString(map)));
                 wrapper.setState(ModuleState.FAILED_LOAD);
             }
