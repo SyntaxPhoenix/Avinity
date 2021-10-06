@@ -37,7 +37,7 @@ public class DescriptionParser {
 
         JsonObject data;
         try {
-            final JsonValue<?> raw = PARSER.fromReader(reader);
+            final JsonValue<?> raw = PARSER.fromString(IOHelper.toString(reader));
             if (!raw.hasType(ValueType.OBJECT)) {
                 throw new ModuleDescriptionException("Invalid module info; Info has to be an json object!");
             }
