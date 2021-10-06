@@ -57,7 +57,7 @@ public class DescriptionParser {
         final JsonArray rawPluginDeps = getOr(rawDependencies, "plugin", ValueType.ARRAY, JsonArray::new);
         final JsonArray rawModuleDeps = getOr(rawDependencies, "module", ValueType.ARRAY, JsonArray::new);
 
-        final String rawSystem = getAsOrDefault(data, "description", ValueType.STRING, "system");
+        final String rawSystem = getAsOrDefault(data, "system", ValueType.STRING, "system");
         final String description = getAsOrDefault(data, "description", ValueType.STRING, "");
         final JsonArray rawAuthors = getOr(data, "authors", ValueType.ARRAY, JsonArray::new);
 

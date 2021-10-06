@@ -65,11 +65,11 @@ public class Dependency {
     }
 
     public boolean hasMaximum() {
-        return maximum == null;
+        return maximum != null;
     }
 
     public boolean hasMinimum() {
-        return minimum == null;
+        return minimum != null;
     }
 
     public boolean hasStrictVersion() {
