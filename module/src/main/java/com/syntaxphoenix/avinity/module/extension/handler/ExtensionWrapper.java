@@ -69,7 +69,8 @@ public final class ExtensionWrapper {
     }
 
     public boolean isAssignable(Class<? extends IExtension> clazz) {
-        return extensionClass.map(current -> clazz.isAssignableFrom(current)).orElse(false);
+        Class<? extends IExtension> current = getExtension();
+        return current == null ? false : clazz.isAssignableFrom(current);
     }
 
 }

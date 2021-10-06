@@ -85,7 +85,6 @@ public class ExtensionManager<M extends Module> {
         ArrayList<ExtensionWrapper> wrappers = waiting.remove(id);
         for (ExtensionWrapper wrapper : wrappers) {
             wrapper.setOwner(module);
-            wrapper.getExtension();
         }
         extensions.addAll(wrappers);
     }
