@@ -233,7 +233,7 @@ public class ModuleManager<M extends Module> {
                 }
                 status.success();
             } catch (final ModuleException exp) {
-                if (logger != null) {
+                if (logger != null && logger.getState().extendedInfo()) {
                     logger.log(exp);
                 }
                 status.failed();
@@ -257,8 +257,8 @@ public class ModuleManager<M extends Module> {
             JarEntry extensions = null;
             while (entries.hasMoreElements()) {
                 final JarEntry entry = entries.nextElement();
-                if (!"module.json".equalsIgnoreCase(entry.getName())) {
-                    if (extensions != null || !"extensions.json".equalsIgnoreCase(entry.getName())) {
+                if (!"module.json".equals(entry.getName())) {
+                    if (extensions != null || !"META-INF/extensions.json".equals(entry.getName())) {
                         continue;
                     }
                     extensions = entry;
@@ -351,7 +351,7 @@ public class ModuleManager<M extends Module> {
                 try {
                     eventManager.call(new ModuleResolveEvent(wrapper));
                 } catch (final Exception exp) {
-                    if (logger != null) {
+                    if (logger != null && logger.getState().extendedInfo()) {
                         logger.log("Failed to call ModuleResolveEvent for module '" + id + "'!", exp);
                     }
                 }
@@ -411,13 +411,13 @@ public class ModuleManager<M extends Module> {
         final ModuleDescription description = wrapper.getDescription();
         final ModuleState state = wrapper.getState();
         if (!state.isResolved()) {
-            if (logger != null) {
+            if (logger != null && logger.getState().extendedInfo()) {
                 logger.log("Module '" + description.getId() + "' is not resolved yet!");
             }
             return state;
         }
         if (state == ModuleState.ENABLED) {
-            if (logger != null) {
+            if (logger != null && logger.getState().extendedInfo()) {
                 logger.log("Module '" + description.getId() + "' is already enabled!");
             }
             return state;
@@ -429,7 +429,7 @@ public class ModuleManager<M extends Module> {
                 module = createModule(wrapper);
             } catch (final ModuleException exp) {
                 wrapper.setState(ModuleState.FAILED_START);
-                if (logger != null) {
+                if (logger != null && logger.getState().extendedInfo()) {
                     logger.log(exp);
                 }
                 wrapper.setFailedException(new ModuleException("Failed to create module", exp));
@@ -442,7 +442,7 @@ public class ModuleManager<M extends Module> {
             module.enable();
         } catch (final Exception exp) {
             wrapper.setState(ModuleState.FAILED_START);
-            if (logger != null) {
+            if (logger != null && logger.getState().extendedInfo()) {
                 logger.log(exp);
             }
             wrapper.setFailedException(new ModuleException("Failed to enable module", exp));
@@ -454,7 +454,7 @@ public class ModuleManager<M extends Module> {
             try {
                 eventManager.call(new ModuleEnableEvent(wrapper));
             } catch (final Exception exp) {
-                if (logger != null) {
+                if (logger != null && logger.getState().extendedInfo()) {
                     logger.log("Failed to call ModuleEnableEvent for module '" + id + "'!", exp);
                 }
             }
@@ -489,13 +489,13 @@ public class ModuleManager<M extends Module> {
         final ModuleDescription description = wrapper.getDescription();
         final ModuleState state = wrapper.getState();
         if (!state.isResolved()) {
-            if (logger != null) {
+            if (logger != null && logger.getState().extendedInfo()) {
                 logger.log("Module '" + description.getId() + "' is not resolved yet!");
             }
             return state;
         }
         if (state == ModuleState.DISABLED || state == ModuleState.FAILED_START || state == ModuleState.FAILED_LOAD) {
-            if (logger != null) {
+            if (logger != null && logger.getState().extendedInfo()) {
                 logger.log("Module '" + description.getId() + "' is already disabled!");
             }
             return state;
@@ -509,7 +509,7 @@ public class ModuleManager<M extends Module> {
             module.disable();
         } catch (final Exception exp) {
             wrapper.setState(ModuleState.FAILED_STOP);
-            if (logger != null) {
+            if (logger != null && logger.getState().extendedInfo()) {
                 logger.log(exp);
             }
             wrapper.setFailedException(new ModuleException("Failed to disable module", exp));
@@ -521,7 +521,7 @@ public class ModuleManager<M extends Module> {
             try {
                 eventManager.call(new ModuleDisableEvent(wrapper));
             } catch (final Exception exp) {
-                if (logger != null) {
+                if (logger != null && logger.getState().extendedInfo()) {
                     logger.log("Failed to call ModuleDisableEvent for module '" + id + "'!", exp);
                 }
             }
@@ -576,7 +576,7 @@ public class ModuleManager<M extends Module> {
             try {
                 eventManager.call(new ModuleUnloadEvent(wrapper));
             } catch (final Exception exp) {
-                if (logger != null) {
+                if (logger != null && logger.getState().extendedInfo()) {
                     logger.log("Failed to call ModuleUnloadEvent for module '" + id + "'!", exp);
                 }
             }
