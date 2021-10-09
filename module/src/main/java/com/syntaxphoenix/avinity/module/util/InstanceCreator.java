@@ -52,11 +52,12 @@ public final class InstanceCreator {
             return clazz.cast(builder.newInstance());
         }
         final Object[] parameters = new Object[args];
+        final Class<?>[] types = builder.getParameterTypes();
         for (int idx = 0; idx < max; idx++) {
             if (argIdx[idx] == -1) {
                 continue;
             }
-            parameters[argIdx[idx]] = arguments[idx];
+            parameters[argIdx[idx]] = types[argIdx[idx]].cast(arguments[idx]);
         }
         return clazz.cast(builder.newInstance(parameters));
     }
