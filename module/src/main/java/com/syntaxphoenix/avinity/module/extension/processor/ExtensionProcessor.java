@@ -247,6 +247,7 @@ public class ExtensionProcessor extends AbstractProcessor {
             }
             String type = mirror.toString();
             if (extensionPointMap.containsKey(type)) {
+                set.add(type);
                 set.addAll(extensionPointMap.get(type));
                 continue; // Already processed, no need to do again
             }
@@ -258,7 +259,7 @@ public class ExtensionProcessor extends AbstractProcessor {
             if (!isInterfaceNested(typeElement.getInterfaces(), searched)) {
                 continue;
             }
-            set.add(mirror.toString());
+            set.add(type);
         }
     }
 
