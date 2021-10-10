@@ -152,14 +152,7 @@ public class ExtensionProcessor extends AbstractProcessor {
         }
         log(Kind.NOTE, "Collecting ExtensionPoints for ", typeName);
         HashSet<String> extensions = extensionMap.computeIfAbsent(typeName, HASHSET_BUILDER);
-        for (TypeMirror mirror : typeElement.getInterfaces()) {
-            String mirrorName = mirror.toString();
-            if (!extensionPointMap.containsKey(mirrorName)) {
-                continue;
-            }
-            extensions.add(mirrorName);
-            extensions.addAll(extensionPointMap.get(mirrorName));
-        }
+        findPoints(typeElement, extensions);
     }
 
     private void preProcessExtensionPoint(Element element) {
@@ -193,23 +186,22 @@ public class ExtensionProcessor extends AbstractProcessor {
             return; // Already processed
         }
         log(Kind.NOTE, "Searching for sub points in '%s'", typeName);
-        findPoints(extensionPointMap.computeIfAbsent(typeName, HASHSET_BUILDER), typeElement);
+        HashSet<String> extensions = extensionPointMap.computeIfAbsent(typeName, HASHSET_BUILDER);
+        findPoints(typeElement, extensions);
     }
 
-    private void findPoints(HashSet<String> points, TypeElement element) {
-        List<? extends TypeMirror> interfaces = element.getInterfaces();
-        for (TypeMirror mirror : interfaces) {
-            if (!typeHelper.isAssignable(mirror, extensionType) || mirror == extensionType) {
-                continue;
-            }
-            String typeName = mirror.toString();
-            points.add(typeName);
-            processExtensionPoint(elementHelper.getTypeElement(typeName));
-            if (!extensionPointMap.containsKey(typeName)) {
-                continue; // Invalid
-            }
-            points.addAll(extensionPointMap.get(typeName));
+    private void findPoints(TypeElement element, HashSet<String> extensions) {
+        addNestedInterfaces(element.getInterfaces(), extensionType, extensions);
+        Element superElement = typeHelper.asElement(element.getSuperclass());
+        if (!(superElement instanceof TypeElement)) {
+            return;
         }
+        TypeElement typeElement = (TypeElement) superElement;
+        if (!isInterfaceNested(typeElement.getInterfaces(), extensionType)) {
+            return;
+        }
+        extensions.add(element.getSuperclass().toString());
+        addNestedInterfaces(typeElement.getInterfaces(), extensionType, extensions);
     }
 
     /*
@@ -246,6 +238,28 @@ public class ExtensionProcessor extends AbstractProcessor {
             return true;
         }
         return false;
+    }
+
+    public void addNestedInterfaces(List<? extends TypeMirror> list, TypeMirror searched, HashSet<String> set) {
+        for (TypeMirror mirror : list) {
+            if (mirror == searched) {
+                continue;
+            }
+            String type = mirror.toString();
+            if (extensionPointMap.containsKey(type)) {
+                set.addAll(extensionPointMap.get(type));
+                continue; // Already processed, no need to do again
+            }
+            Element element = typeHelper.asElement(mirror);
+            if (!(element instanceof TypeElement)) {
+                continue;
+            }
+            TypeElement typeElement = (TypeElement) element;
+            if (!isInterfaceNested(typeElement.getInterfaces(), searched)) {
+                continue;
+            }
+            set.add(mirror.toString());
+        }
     }
 
     public AnnotationMirror getAnnotationMirror(TypeElement element, Class<?> annotation) {
