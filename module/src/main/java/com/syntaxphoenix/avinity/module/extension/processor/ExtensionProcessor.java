@@ -16,6 +16,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
@@ -73,7 +74,7 @@ public class ExtensionProcessor extends AbstractProcessor {
             if (element.getKind() == ElementKind.ANNOTATION_TYPE) {
                 continue;
             }
-            processExtensionPoint(element);
+            preProcessExtensionPoint(element);
         }
 
         log(Kind.NOTE, "Processing nested @%s", ExtensionPoint.class.getName());
@@ -82,7 +83,7 @@ public class ExtensionProcessor extends AbstractProcessor {
                 continue;
             }
             for (Element element : roundEnv.getElementsAnnotatedWith(typeElement)) {
-                processExtensionPoint(element);
+                preProcessExtensionPoint(element);
             }
         }
 
@@ -91,7 +92,7 @@ public class ExtensionProcessor extends AbstractProcessor {
             if (element.getKind() == ElementKind.ANNOTATION_TYPE) {
                 continue;
             }
-            processExtension(element);
+            preProcessExtension(element);
         }
 
         log(Kind.NOTE, "Processing nested @%s", Extension.class.getName());
@@ -100,7 +101,7 @@ public class ExtensionProcessor extends AbstractProcessor {
                 continue;
             }
             for (Element element : roundEnv.getElementsAnnotatedWith(typeElement)) {
-                processExtension(element);
+                preProcessExtension(element);
             }
         }
 
@@ -117,6 +118,18 @@ public class ExtensionProcessor extends AbstractProcessor {
         return false;
     }
 
+    private void preProcessExtension(Element element) {
+        if (element instanceof TypeElement) {
+            TypeElement typeElement = (TypeElement) element;
+            if (getAnnotationMirror(typeElement, ExtensionPoint.class) != null
+                && isInterfaceNested(typeElement.getInterfaces(), extensionType)) {
+                log(Kind.ERROR, "%s ExtensionPoint can't be a Extension at the same time!");
+                return;
+            }
+        }
+        processExtension(element);
+    }
+
     private void processExtension(Element element) {
         log(Kind.NOTE, "Processing Extension '%s'", element.asType().toString());
         if (!(element instanceof TypeElement)) {
@@ -129,8 +142,8 @@ public class ExtensionProcessor extends AbstractProcessor {
             return;
         }
         TypeElement typeElement = (TypeElement) element;
-        if (getAnnotationMirror(typeElement, ExtensionPoint.class) != null) {
-            log(Kind.ERROR, "%s ExtensionPoint can't be a Extension at the same time!");
+        if (typeElement.getModifiers().contains(Modifier.ABSTRACT)) {
+            log(Kind.WARNING, "%s is an abstract class and can't be a Extension", typeElement);
             return;
         }
         String typeName = type.toString();
@@ -147,6 +160,16 @@ public class ExtensionProcessor extends AbstractProcessor {
             extensions.add(mirrorName);
             extensions.addAll(extensionPointMap.get(mirrorName));
         }
+    }
+
+    private void preProcessExtensionPoint(Element element) {
+        if (element instanceof TypeElement) {
+            TypeElement typeElement = (TypeElement) element;
+            if (!isInterfaceNested(typeElement.getInterfaces(), extensionType)) {
+                return;
+            }
+        }
+        processExtensionPoint(element);
     }
 
     private void processExtensionPoint(Element element) {
@@ -200,6 +223,10 @@ public class ExtensionProcessor extends AbstractProcessor {
             System.out.println("[ERROR] " + out);
             return;
         }
+        if (kind == Kind.WARNING) {
+            System.out.println("[WARNING] " + out);
+            return;
+        }
         System.out.println("[INFO] " + out);
     }
 
@@ -207,7 +234,21 @@ public class ExtensionProcessor extends AbstractProcessor {
      * Helper
      */
 
-    public static AnnotationMirror getAnnotationMirror(TypeElement element, Class<?> annotation) {
+    public boolean isInterfaceNested(List<? extends TypeMirror> list, TypeMirror searched) {
+        for (TypeMirror mirror : list) {
+            if (mirror == searched) {
+                return true;
+            }
+            Element element = typeHelper.asElement(mirror);
+            if (!(element instanceof TypeElement) || !isInterfaceNested(((TypeElement) element).getInterfaces(), searched)) {
+                continue;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public AnnotationMirror getAnnotationMirror(TypeElement element, Class<?> annotation) {
         String annotationName = annotation.getName();
         for (AnnotationMirror mirror : element.getAnnotationMirrors()) {
             if (mirror.getAnnotationType().toString().equals(annotationName)) {
