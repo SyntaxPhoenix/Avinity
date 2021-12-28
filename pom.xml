@@ -4,12 +4,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.syntaxphoenix.avinity</groupId>
 	<artifactId>avinity</artifactId>
-	<version>1.1.0</version>
+	<version>2.0.0</version>
 	<packaging>pom</packaging>
 	<name>Avinity</name>
 	<modules>
 		<module>module</module>
-		<module>redis</module>
+		
+		<module>command</module>
 	</modules>
 
 	<url>https://github.com/SyntaxPhoenix/Avinity</url>
