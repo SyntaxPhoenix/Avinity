@@ -40,7 +40,6 @@ class LiteralNode<S extends ISource> extends Node<S> {
                                 continue;
                             }
                             map.put(entry.getKey(), new ParsedArgument<>(entry.getKey(), value, index));
-                            reader.skipWhitespace();
                         } catch (IllegalArgumentException exception) {
                             Argument<?> argument = entry.getValue();
                             if (!argument.isOptional()) {
@@ -74,7 +73,7 @@ class LiteralNode<S extends ISource> extends Node<S> {
             if (!reader.hasNext()) {
                 return;
             }
-            String name = reader.read().toLowerCase();
+            String name = reader.skipWhitespace().read().toLowerCase();
             if (!literals.containsKey(name)) {
                 return;
             }

@@ -74,7 +74,7 @@ public interface IArgumentType<E> {
     default E safeParse(StringReader reader) throws IllegalArgumentException {
         int cursor = reader.getCursor();
         try {
-            E value = parse(reader);
+            E value = parse(reader.skipWhitespace());
             if (value == null) {
                 reader.setCursor(cursor);
                 return null;
