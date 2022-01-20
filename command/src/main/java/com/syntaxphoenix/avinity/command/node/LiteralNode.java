@@ -1,6 +1,6 @@
 package com.syntaxphoenix.avinity.command.node;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 
@@ -21,12 +21,12 @@ class LiteralNode<S extends ISource> extends Node<S> {
         int start = reader.getCursor();
         try {
             if (!arguments.isEmpty()) {
-                HashMap<String, ParsedArgument<?>> map = new HashMap<>();
+                ArrayList<String> argumentNames = new ArrayList<>();
                 @SuppressWarnings("unchecked")
                 Entry<String, Argument<?>>[] entries = arguments.entrySet().toArray(Entry[]::new);
                 for (int index = 0; index < entries.length; index++) {
                     for (Entry<String, Argument<?>> entry : entries) {
-                        if (!entry.getValue().isInRange(index) || map.containsKey(entry.getKey())) {
+                        if (!entry.getValue().isInRange(index) || argumentNames.contains(entry.getKey())) {
                             continue;
                         }
                         if (!reader.hasNext() && !entry.getValue().isOptional()) {
@@ -39,7 +39,8 @@ class LiteralNode<S extends ISource> extends Node<S> {
                             if (value == null) {
                                 continue;
                             }
-                            map.put(entry.getKey(), new ParsedArgument<>(entry.getKey(), value, index));
+                            argumentNames.add(entry.getKey());
+                            builder.withArgument(new ParsedArgument<>(entry.getKey(), value, index));
                         } catch (IllegalArgumentException exception) {
                             Argument<?> argument = entry.getValue();
                             if (!argument.isOptional()) {
@@ -49,19 +50,6 @@ class LiteralNode<S extends ISource> extends Node<S> {
                             }
                         }
                     }
-                }
-                for (Entry<String, Argument<?>> entry : entries) {
-                    Argument<?> argument = entry.getValue();
-                    if (argument.isOptional()) {
-                        continue;
-                    }
-                    if (!map.containsKey(entry.getKey())) {
-                        throw new IllegalArgumentException("Required argument '" + entry.getKey() + "' (Index " + argument.getStart() + "-"
-                            + argument.getEnd() + ") for '" + name + "' is not given!");
-                    }
-                }
-                for (String key : map.keySet()) {
-                    builder.withArgument(map.get(key));
                 }
             }
             if (permission != null) {

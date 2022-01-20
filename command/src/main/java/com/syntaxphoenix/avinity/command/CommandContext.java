@@ -63,6 +63,10 @@ public final class CommandContext<S extends ISource> {
     public boolean has(String name) {
         return arguments.containsKey(name);
     }
+    
+    public int getArgumentCount() {
+        return arguments.size();
+    }
 
     @SuppressWarnings("unchecked")
     public <T> T get(String name, Class<T> clazz) {

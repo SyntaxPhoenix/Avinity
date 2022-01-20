@@ -43,6 +43,14 @@ public abstract class Node<S extends ISource> {
     public String[] getChildrenNames() {
         return children.keySet().toArray(String[]::new);
     }
+    
+    public boolean hasChild(String name) {
+        return children.containsKey(name);
+    }
+    
+    public Node<S> getChild(String name) {
+        return children.get(name);
+    }
 
     @SuppressWarnings("unchecked")
     public Node<S>[] getChildren() {

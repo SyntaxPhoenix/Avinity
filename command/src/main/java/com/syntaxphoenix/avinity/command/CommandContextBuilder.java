@@ -29,7 +29,6 @@ public class CommandContextBuilder<S extends ISource> {
     }
 
     public <T> void withArgument(ParsedArgument<?> argument) {
-        System.out.println(argument.getName() + " / " + argument.getIndex());
         arguments.put(argument.getName(), argument);
     }
 

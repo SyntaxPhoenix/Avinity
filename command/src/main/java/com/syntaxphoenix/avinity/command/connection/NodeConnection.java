@@ -16,6 +16,10 @@ public final class NodeConnection<S extends ISource> extends AbstractConnection<
     public NodeConnection(Node<S> node) {
         this.node = Objects.requireNonNull(node);
     }
+    
+    public Node<S> getNode() {
+        return node;
+    }
 
     @Override
     protected void parse(StringReader reader, CommandContextBuilder<S> context) {
