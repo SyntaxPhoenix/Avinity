@@ -9,7 +9,7 @@
 	<name>Avinity</name>
 	<modules>
 		<module>module</module>
-		
+
 		<module>command</module>
 	</modules>
 
@@ -57,10 +57,6 @@
 
 	<build>
 		<plugins>
-			<plugin>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.22.2</version>
-			</plugin>
 			<plugin>
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<version>2.22.2</version>
