@@ -5,3 +5,5 @@
 /target/
 *.iml
 .idea/
+command/dependency-reduced-pom.xml
+module/dependency-reduced-pom.xml
