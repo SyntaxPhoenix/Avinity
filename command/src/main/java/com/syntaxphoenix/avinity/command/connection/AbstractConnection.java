@@ -41,7 +41,7 @@ public abstract class AbstractConnection<S extends ISource> {
         for (int index = 0; index < arguments.length; index++) {
             builder.append(arguments[index]).append(" ");
         }
-        return builder.substring(0, builder.length() - 1);
+        return builder.toString();
     }
 
     /*

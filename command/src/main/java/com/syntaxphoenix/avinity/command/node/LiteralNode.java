@@ -29,11 +29,14 @@ class LiteralNode<S extends ISource> extends Node<S> {
                         if (!entry.getValue().isInRange(index) || argumentNames.contains(entry.getKey())) {
                             continue;
                         }
-                        if (!reader.hasNext() && !entry.getValue().isOptional()) {
+                        int cursor = reader.getCursor();
+                        if (!reader.skipWhitespace().hasNext() && !entry.getValue().isOptional()) {
+                            reader.setCursor(cursor);
                             Argument<?> argument = entry.getValue();
                             throw new IllegalArgumentException("Required argument '" + entry.getKey() + "' (Index " + argument.getStart()
                                 + "-" + argument.getEnd() + ") for '" + name + "' is not specified!");
                         }
+                        reader.setCursor(cursor);
                         try {
                             Object value = entry.getValue().getType().safeParse(reader);
                             if (value == null) {
