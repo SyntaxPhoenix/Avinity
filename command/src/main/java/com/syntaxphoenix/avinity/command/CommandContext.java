@@ -34,7 +34,7 @@ public final class CommandContext<S extends ISource> {
     public String getRemaining() {
         return remaining;
     }
-    
+
     public boolean isNewArgument() {
         return newArgument;
     }
@@ -63,7 +63,7 @@ public final class CommandContext<S extends ISource> {
     public boolean has(String name) {
         return arguments.containsKey(name);
     }
-    
+
     public int getArgumentCount() {
         return arguments.size();
     }

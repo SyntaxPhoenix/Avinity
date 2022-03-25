@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import com.syntaxphoenix.avinity.command.CommandContext;
 import com.syntaxphoenix.avinity.command.CommandContextBuilder;
 import com.syntaxphoenix.avinity.command.CommandManager;
+import com.syntaxphoenix.avinity.command.IPermission;
 import com.syntaxphoenix.avinity.command.ISource;
 import com.syntaxphoenix.avinity.command.StringReader;
 import com.syntaxphoenix.avinity.command.node.RootNode;
@@ -26,15 +27,19 @@ public final class ManagerConnection<S extends ISource> extends AbstractConnecti
         }
         rootNode.parse(reader.skipWhitespace(), context);
     }
-    
+
     // TODO: Respect permissions
-    
+
     @Override
     public void suggest(ArrayList<String> suggestions, CommandContext<S> context) {
         if (context.getNode() == null) {
             String remain = context.getRemaining();
             for (String alias : manager.getAliases()) {
                 if (!remain.startsWith(alias)) {
+                    continue;
+                }
+                IPermission permission = manager.get(alias).getPermission();
+                if (permission != null && !context.getSource().hasPermission(permission)) {
                     continue;
                 }
                 suggestions.add(alias);

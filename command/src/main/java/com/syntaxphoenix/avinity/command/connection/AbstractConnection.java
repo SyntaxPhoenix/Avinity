@@ -22,7 +22,7 @@ public abstract class AbstractConnection<S extends ISource> {
         if (arguments == null) {
             throw new NullPointerException("'arguments' can't be null!");
         }
-        return parse(source, new StringReader(arguments.trim()));
+        return parse(source, new StringReader(arguments));
     }
 
     public CommandContext<S> parse(S source, StringReader reader) {
@@ -54,7 +54,7 @@ public abstract class AbstractConnection<S extends ISource> {
 
     @SuppressWarnings("unchecked")
     protected void nodeSuggest(Node<S> node, CommandContext<S> context, ArrayList<String> suggestions) {
-        if (context.isNewArgument()) {
+        if ((node.getPermission() != null && !context.getSource().hasPermission(node.getPermission())) || context.isNewArgument()) {
             return;
         }
         Entry<String, Argument<?>>[] entries = node.getArguments().entrySet().toArray(Entry[]::new);
