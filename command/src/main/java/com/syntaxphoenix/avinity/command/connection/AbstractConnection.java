@@ -80,10 +80,10 @@ public abstract class AbstractConnection<S extends ISource> {
             }
         }
         String remain = parseRemaining(context.getRemaining());
-        if (context.isRemainingSpaced() && rIdx == -1) {
+        if (rIdx == -1) {
             String[] children = node.getChildrenNames();
             for (String child : children) {
-                if (!remain.isBlank() && !remain.startsWith(child)) {
+                if (!remain.isEmpty() && !remain.startsWith(child)) {
                     continue;
                 }
                 if (child.contains(" ")) {

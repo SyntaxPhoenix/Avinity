@@ -14,7 +14,6 @@ public final class CommandContext<S extends ISource> {
     private final S source;
 
     private final String remaining;
-    private final boolean remainingSpaced;
 
     private final Exception exception;
 
@@ -26,17 +25,11 @@ public final class CommandContext<S extends ISource> {
         this.exception = exception;
         this.arguments = arguments;
         this.permissions = permissions;
-        int cursor = reader.getCursor();
         this.remaining = reader.skipWhitespace().getRemaining();
-        this.remainingSpaced = cursor != reader.getCursor();
     }
 
     public String getRemaining() {
         return remaining;
-    }
-    
-    public boolean isRemainingSpaced() {
-        return remainingSpaced;
     }
 
     public Exception getException() {

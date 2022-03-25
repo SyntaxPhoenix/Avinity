@@ -63,7 +63,6 @@ final class IntegerArgument extends NumberArgument<Integer> {
                 suggestions.add(Integer.toString(a));
             }
         } catch (IllegalArgumentException ignore) {
-            System.out.println(ignore.getMessage());
             suggestions.add("['" + minimum + "'-'" + maximum + "']");
         }
     }
