@@ -83,7 +83,7 @@ public abstract class AbstractConnection<S extends ISource> {
         if (context.isRemainingSpaced() && rIdx == -1) {
             String[] children = node.getChildrenNames();
             for (String child : children) {
-                if (!remain.startsWith(child)) {
+                if (!remain.isBlank() && !remain.startsWith(child)) {
                     continue;
                 }
                 if (child.contains(" ")) {
