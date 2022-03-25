@@ -31,8 +31,8 @@ class LiteralNode<S extends ISource> extends Node<S> {
                         }
                         if (!reader.hasNext() && !entry.getValue().isOptional()) {
                             Argument<?> argument = entry.getValue();
-                            throw new IllegalArgumentException("Required argument '" + entry.getKey() + "' (Index "
-                                + argument.getStart() + "-" + argument.getEnd() + ") for '" + name + "' is not specified!");
+                            throw new IllegalArgumentException("Required argument '" + entry.getKey() + "' (Index " + argument.getStart()
+                                + "-" + argument.getEnd() + ") for '" + name + "' is not specified!");
                         }
                         try {
                             Object value = entry.getValue().getType().safeParse(reader);
@@ -61,8 +61,10 @@ class LiteralNode<S extends ISource> extends Node<S> {
             if (!reader.hasNext()) {
                 return;
             }
+            int cursor = reader.getCursor();
             String name = reader.skipWhitespace().read().toLowerCase();
             if (!literals.containsKey(name)) {
+                reader.setCursor(cursor);
                 return;
             }
             literals.get(name).parse(reader, builder);

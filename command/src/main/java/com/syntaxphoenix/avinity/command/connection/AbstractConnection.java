@@ -54,6 +54,9 @@ public abstract class AbstractConnection<S extends ISource> {
 
     @SuppressWarnings("unchecked")
     protected void nodeSuggest(Node<S> node, CommandContext<S> context, ArrayList<String> suggestions) {
+        if (context.isNewArgument()) {
+            return;
+        }
         Entry<String, Argument<?>>[] entries = node.getArguments().entrySet().toArray(Entry[]::new);
         int opIdx = -1;
         int rIdx = -1;
