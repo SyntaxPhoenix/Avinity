@@ -16,7 +16,7 @@ public final class NodeConnection<S extends ISource> extends AbstractConnection<
     public NodeConnection(Node<S> node) {
         this.node = Objects.requireNonNull(node);
     }
-    
+
     public Node<S> getNode() {
         return node;
     }
@@ -28,6 +28,10 @@ public final class NodeConnection<S extends ISource> extends AbstractConnection<
 
     @Override
     public void suggest(ArrayList<String> suggestions, CommandContext<S> context) {
+        if (context.isParentArgument() && context.getParentNode() != null) {
+            nodeSuggest(context.getParentNode(), context, suggestions);
+            return;
+        }
         nodeSuggest(context.getNode(), context, suggestions);
     }
 

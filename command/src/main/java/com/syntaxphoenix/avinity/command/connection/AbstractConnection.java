@@ -41,7 +41,7 @@ public abstract class AbstractConnection<S extends ISource> {
         for (int index = 0; index < arguments.length; index++) {
             builder.append(arguments[index]).append(" ");
         }
-        return builder.toString();
+        return builder.substring(0, builder.length() - 1);
     }
 
     /*
@@ -50,43 +50,26 @@ public abstract class AbstractConnection<S extends ISource> {
 
     public abstract void suggest(ArrayList<String> suggestions, CommandContext<S> context);
 
-    // TODO: Respect permissions
-
     @SuppressWarnings("unchecked")
     protected void nodeSuggest(Node<S> node, CommandContext<S> context, ArrayList<String> suggestions) {
-        if ((node.getPermission() != null && !context.getSource().hasPermission(node.getPermission())) || context.isNewArgument()) {
+        if (node.getPermission() != null && !context.getSource().hasPermission(node.getPermission()) || context.isAtEnd()) {
             return;
         }
         Entry<String, Argument<?>>[] entries = node.getArguments().entrySet().toArray(Entry[]::new);
-        int opIdx = -1;
-        int rIdx = -1;
-        int lastIdx = -1;
-        int endIndex = entries.length - 1;
+        int neededIdx = -1;
         for (int idx = 0; idx < entries.length; idx++) {
             Entry<String, Argument<?>> entry = entries[idx];
             ParsedArgument<?> argument = context.getArgument(entry.getKey());
-            if (argument != null) {
-                lastIdx = idx;
+            if (argument != null || entry.getValue().isOptional()) {
                 continue;
             }
-            for (int index = 0; index < entries.length; index++) {
-                if (entry.getValue().isOptional()) {
-                    opIdx = idx;
-                    continue;
-                }
-                rIdx = idx;
-                endIndex = index;
-                break;
-            }
-            if (rIdx != -1) {
-                break;
-            }
+            neededIdx = idx;
         }
-        String remain = parseRemaining(context.getRemaining());
-        if (rIdx == -1) {
+        String remain = parseRemaining(context.isParentArgument() ? context.getParentRemaining() : context.getRemaining());
+        if (neededIdx == -1) {
             String[] children = node.getChildrenNames();
             for (String child : children) {
-                if (!remain.isEmpty() && !remain.startsWith(child)) {
+                if (!remain.isEmpty() && !child.startsWith(remain)) {
                     continue;
                 }
                 if (child.contains(" ")) {
@@ -96,25 +79,17 @@ public abstract class AbstractConnection<S extends ISource> {
             }
         }
         StringReader reader = new StringReader(readyRead(remain));
-        if (rIdx != -1) {
-            Argument<?> argument = entries[rIdx].getValue();
+        if (neededIdx != -1) {
+            // Complete not given required argument
+            Argument<?> argument = entries[neededIdx].getValue();
             argument.getType().suggest(reader, suggestions);
             reader.setCursor(0);
+            return;
         }
-        if (opIdx != -1) {
-            Argument<?> argument = entries[opIdx].getValue();
-            if (argument.isInRange(endIndex)) {
-                argument.getType().suggest(reader, suggestions);
-            }
-        }
-        if (opIdx == -1 && rIdx == -1 && lastIdx != -1) {
-            Argument<?> argument = entries[lastIdx].getValue();
-            if (argument.isInRange(endIndex)) {
-                argument.getType().suggest(
-                    new StringReader(argument.getType().printAbstract(context.getArgument(entries[lastIdx].getKey()).getValue())),
-                    suggestions);
-            }
-        }
+        // TODO: Add tab complete to optional argument
+        
+        // TODO: Add tab complete to argument that might not be completed due to the user wanting to change it
+        //       -> Argument is only complete if user goes to next argument
     }
 
     protected String readyRead(String remaining) {

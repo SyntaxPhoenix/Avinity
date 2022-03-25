@@ -66,8 +66,16 @@ public class StringReader implements Iterator<Character> {
         return content.substring(0, cursor);
     }
 
+    public String getContent(int start, int end) {
+        return content.substring(start, end);
+    }
+
     public String getRemaining() {
         return content.substring(cursor);
+    }
+
+    public String getRemaining(int end) {
+        return content.substring(cursor, end);
     }
 
     /*
@@ -211,7 +219,7 @@ public class StringReader implements Iterator<Character> {
      */
 
     public boolean parseBoolean() {
-        if(!hasNext()) {
+        if (!hasNext()) {
             throw new IllegalArgumentException("There is nothing to read!");
         }
         final int start = cursor;

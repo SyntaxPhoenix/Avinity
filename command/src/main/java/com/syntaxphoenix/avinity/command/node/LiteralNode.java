@@ -17,8 +17,8 @@ class LiteralNode<S extends ISource> extends Node<S> {
 
     @Override
     public void parse(StringReader reader, CommandContextBuilder<S> builder) {
-        builder.withNode(this);
         int start = reader.getCursor();
+        builder.withNode(this, start);
         try {
             if (!arguments.isEmpty()) {
                 ArrayList<String> argumentNames = new ArrayList<>();
@@ -41,6 +41,7 @@ class LiteralNode<S extends ISource> extends Node<S> {
                             }
                             argumentNames.add(entry.getKey());
                             builder.withArgument(new ParsedArgument<>(entry.getKey(), value, index));
+                            builder.withStart(start);
                         } catch (IllegalArgumentException exception) {
                             Argument<?> argument = entry.getValue();
                             if (!argument.isOptional()) {
@@ -71,6 +72,7 @@ class LiteralNode<S extends ISource> extends Node<S> {
         } catch (IllegalArgumentException exception) {
             builder.withException(exception);
             reader.setCursor(start);
+            builder.withStart(start);
             return;
         }
     }
