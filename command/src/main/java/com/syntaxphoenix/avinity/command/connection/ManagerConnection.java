@@ -20,22 +20,22 @@ public final class ManagerConnection<S extends ISource> extends AbstractConnecti
 
     @Override
     protected void parse(StringReader reader, CommandContextBuilder<S> context) {
+        int cursor = reader.getCursor();
         String command = reader.hasNext() ? reader.read() : "";
         RootNode<S> rootNode = manager.getOrGlobal(command);
         if (rootNode == null) {
+            reader.setCursor(cursor);
             return;
         }
-        rootNode.parse(reader.skipWhitespace(), context);
+        rootNode.parse(reader, context);
     }
-
-    // TODO: Respect permissions
 
     @Override
     public void suggest(ArrayList<String> suggestions, CommandContext<S> context) {
         if (context.getNode() == null) {
             String remain = context.getRemaining();
             for (String alias : manager.getAliases()) {
-                if (!remain.startsWith(alias)) {
+                if (!alias.contains(remain)) {
                     continue;
                 }
                 IPermission permission = manager.get(alias).getPermission();
@@ -44,6 +44,7 @@ public final class ManagerConnection<S extends ISource> extends AbstractConnecti
                 }
                 suggestions.add(alias);
             }
+            suggestions.sort((s1, s2) -> -Boolean.compare(s1.startsWith(remain), s2.startsWith(remain)));
             return;
         }
         nodeSuggest(context.getNode(), context, suggestions);

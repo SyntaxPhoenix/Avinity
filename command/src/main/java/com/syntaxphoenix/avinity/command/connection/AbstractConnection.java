@@ -56,17 +56,17 @@ public abstract class AbstractConnection<S extends ISource> {
             return;
         }
         Entry<String, Argument<?>>[] entries = node.getArguments().entrySet().toArray(Entry[]::new);
-        int neededIdx = -1;
+        boolean required = false;
         for (int idx = 0; idx < entries.length; idx++) {
             Entry<String, Argument<?>> entry = entries[idx];
             ParsedArgument<?> argument = context.getArgument(entry.getKey());
             if (argument != null || entry.getValue().isOptional()) {
                 continue;
             }
-            neededIdx = idx;
+            required = true;
         }
         String remain = parseRemaining(context.isParentArgument() ? context.getParentRemaining() : context.getRemaining());
-        if (neededIdx == -1) {
+        if (!required) {
             String[] children = node.getChildrenNames();
             for (String child : children) {
                 if (!remain.isEmpty() && !child.startsWith(remain)) {
@@ -79,20 +79,31 @@ public abstract class AbstractConnection<S extends ISource> {
             }
         }
         StringReader reader = new StringReader(readyRead(remain));
-        if (neededIdx != -1) {
-            // Complete not given required argument
-            Argument<?> argument = entries[neededIdx].getValue();
-            argument.getType().suggest(reader, suggestions);
-            reader.setCursor(0);
-            return;
+        for (int index = 0; index < entries.length; index++) {
+            boolean suggested = false;
+            for (Entry<String, Argument<?>> entry : entries) {
+                Argument<?> argument = entry.getValue();
+                if (!argument.isInRange(index)) {
+                    continue;
+                }
+                ParsedArgument<?> parsedArgument = context.getArgument(entry.getKey());
+                if(parsedArgument != null) {
+                    continue;
+                }
+                argument.getType().suggest(reader, suggestions);
+                reader.setCursor(0);
+                suggested = true;
+            }
+            if(suggested) {
+                break;
+            }
         }
-        // TODO: Add tab complete to optional argument
-        
-        // TODO: Add tab complete to argument that might not be completed due to the user wanting to change it
-        //       -> Argument is only complete if user goes to next argument
     }
 
     protected String readyRead(String remaining) {
+        if (remaining.isEmpty()) {
+            return remaining;
+        }
         if (remaining.startsWith("\"") && remaining.endsWith("\"")) {
             return remaining;
         }
@@ -103,7 +114,6 @@ public abstract class AbstractConnection<S extends ISource> {
     }
 
     protected String parseRemaining(String remaining) {
-        remaining = remaining.trim();
         if (remaining.startsWith("\"") && !remaining.endsWith("\"")) {
             remaining = remaining.substring(1);
         } else if (!remaining.startsWith("\"") && remaining.endsWith("\"")) {
@@ -113,6 +123,9 @@ public abstract class AbstractConnection<S extends ISource> {
             remaining = remaining.substring(1);
         } else if (!remaining.startsWith("'") && remaining.endsWith("'")) {
             remaining = remaining.substring(0, remaining.length());
+        }
+        if(!(remaining.startsWith("'") || remaining.startsWith("\""))) {
+            remaining = remaining.trim();
         }
         if (remaining.endsWith(".") && Strings.isDecimal(remaining + "0")) {
             return remaining + "0";

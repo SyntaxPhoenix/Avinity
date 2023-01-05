@@ -33,6 +33,19 @@ public abstract class Node<S extends ISource> {
             throw new IllegalArgumentException("Name can't be blank!");
         }
         this.name = name.toLowerCase();
+        Integer required = null;
+        for(Argument<?> argument : arguments.values()) {
+            if(argument.isOptional()) {
+               continue; 
+            }
+            if(required == null) {
+                required = argument.getStart();
+                continue;
+            }
+            if(required == argument.getStart()) {
+                throw new IllegalArgumentException("Required arguments can't have the same start index!");
+            }
+        }
         this.arguments = Collections.unmodifiableMap(Objects.requireNonNull(arguments));
     }
 
